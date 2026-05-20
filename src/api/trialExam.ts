@@ -120,16 +120,27 @@ export const useTrialSession = (sessionId: string) => {
 // Autosave
 // ============================================================
 
+export interface AutosaveRequest {
+  answers: Record<string, unknown>
+  client_seq?: number
+}
+
 export const useTrialAutosave = () => {
   return useMutation({
     mutationFn: async ({
       sessionId,
       answers,
+      clientSeq,
     }: {
       sessionId: string
       answers: Record<string, unknown>
+      clientSeq?: number
     }) => {
-      await api.patch(`/api/v1/trial-exam/${sessionId}/autosave`, { answers } satisfies AutosaveRequest)
+      await api.patch(`/api/v1/trial-exam/${sessionId}/autosave`, {
+        answers,
+        client_seq: clientSeq ?? 0,
+      } satisfies AutosaveRequest)
+      return clientSeq ?? 0
     },
   })
 }
@@ -209,18 +220,41 @@ export interface ExamContent {
   type: string
   skill: string
   prompt?: string
-  passage?: string  // full reading passage text
-  questions?: FlatQuestion[]
+  passage?: string  // full reading passage text (for legacy/existing exams)
+  questions?: FlatQuestion[]  // flat list of questions
+  parts?: ExamPart[]  // structured parts for multi-passage exams
   media_url?: string
   media_duration?: number
+}
+
+export interface ExamPart {
+  partIndex: number
+  passage?: string  // reading passage text for this part
+  question?: string  // or prompt text (for writing/speaking)
+  questions?: FlatQuestion[]  // questions for this part
+  listening_times?: ListeningTime[]
+}
+
+export interface ListeningTime {
+  label: string
+  start: number
+  end: number
+}
+
+export interface QuestionOption {
+  key: string  // e.g., "A", "B", "C", "D"
+  text: string // plain text option
+  order?: number // original order in the legacy data
 }
 
 export interface FlatQuestion {
   question_index: number
   question: string
+  html_question?: string  // HTML version of the question text
   question_type: string
   part_index: number
   group_index: number
+  options?: QuestionOption[]  // answer choices for multiple-choice questions
 }
 
 // ============================================================

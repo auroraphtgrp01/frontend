@@ -3296,7 +3296,7 @@ vite@^5.3.4:
 
 vitest@^4.1.6:
   version "4.1.6"
-  resolved "https://registry.npmjs.org/vitest/-/vitest-4.1.6.tgz"
+  resolved "https://registry.yarnpkg.com/vitest/-/vitest-4.1.6.tgz#754875c9a09c5a3e8ca7d07d440659d92c19787f"
   integrity sha512-6lvjbS3p9b4CrdCmguzbh2/4uoXhGE2q71R4OX5sqF9R1bo9Xd6fGrMAfvp5wnCzlBnFVdCOp6onuTQVbo8iUQ==
   dependencies:
     "@vitest/expect" "4.1.6"

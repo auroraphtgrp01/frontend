@@ -1,0 +1,10 @@
+{
+  "allowed_hosts": [],
+  "ssl_redirect": false,
+  "sts_seconds": 31536000,
+  "sts_include_subdomains": true,
+  "frame_deny": true,
+  "content_type_nosniff": true,
+  "browser_xss_filter": true,
+  "content_security_policy": "default-src 'self'"
+}

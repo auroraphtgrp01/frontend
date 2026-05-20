@@ -57,3 +57,62 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Styles for embedded exam HTML inputs */
+.exam-questions-html {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #1f2937;
+}
+
+.exam-questions-html p {
+  @apply my-3;
+}
+
+.exam-questions-html strong {
+  @apply font-semibold text-gray-900;
+}
+
+.exam-questions-html input[type="radio"],
+.exam-questions-html input[type="checkbox"] {
+  @apply w-5 h-5 text-blue-600 accent-blue-600 cursor-pointer;
+}
+
+.exam-questions-html input[type="text"] {
+  @apply px-4 py-2 text-base border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100;
+  min-width: 200px;
+}
+
+.exam-questions-html select {
+  @apply px-4 py-2 text-base border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white;
+  min-width: 150px;
+}
+
+.exam-questions-html label {
+  @apply cursor-pointer;
+}
+
+.exam-questions-html ul, .exam-questions-html ol {
+  @apply pl-6 my-2;
+}
+
+.exam-questions-html table {
+  @apply border-collapse w-full my-3;
+}
+
+.exam-questions-html th, .exam-questions-html td {
+  @apply border border-gray-300 p-2;
+}
+
+.exam-questions-html th {
+  @apply bg-gray-50;
+}
+
+.exam-questions-html .content-drag-and-drop-vertical,
+.exam-questions-html .content-drag-and-drop-horizontal {
+  @apply my-4 p-4 bg-gray-50 rounded-lg;
+}
+
+.exam-questions-html .answer-drag-and-drop {
+  @apply space-y-2;
+}

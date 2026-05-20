@@ -1,0 +1,843 @@
+{
+  "@comment": "Order Service — Products list (public)",
+  "endpoint": "/api/v1/products",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/products",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Product detail (public)",
+  "endpoint": "/api/v1/products/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/products/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Orders, Appointments, Time-Slots, Scheduling, Exam-Booking, Payments, Vouchers",
+  "endpoint": "/api/v1/orders",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/orders",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Retail checkout",
+  "endpoint": "/api/v1/orders/retail-checkout",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/orders/retail-checkout",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — List orders",
+  "endpoint": "/api/v1/orders",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/orders",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Get order",
+  "endpoint": "/api/v1/orders/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/orders/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Check order status",
+  "endpoint": "/api/v1/orders/{id}/status",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/orders/{id}/status",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Academy admin list orders (tenant)",
+  "endpoint": "/api/v1/academy-admin/orders",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/academy-admin/orders",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Academy admin get order",
+  "endpoint": "/api/v1/academy-admin/orders/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/academy-admin/orders/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Academy admin update order",
+  "endpoint": "/api/v1/academy-admin/orders/{id}",
+  "method": "PATCH",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/academy-admin/orders/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Academy admin refund order",
+  "endpoint": "/api/v1/academy-admin/orders/{id}/refund",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/academy-admin/orders/{id}/refund",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Academy admin list voucher redemptions",
+  "endpoint": "/api/v1/academy-admin/vouchers/{id}/usages",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/academy-admin/vouchers/{id}/usages",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Platform admin list orders (same backend; system_admin only)",
+  "endpoint": "/api/v1/platform/orders",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/platform/orders",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Platform admin get order",
+  "endpoint": "/api/v1/platform/orders/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/platform/orders/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Platform admin update order",
+  "endpoint": "/api/v1/platform/orders/{id}",
+  "method": "PATCH",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/platform/orders/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Platform admin refund order",
+  "endpoint": "/api/v1/platform/orders/{id}/refund",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/platform/orders/{id}/refund",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Order Service — Platform admin invalidate product catalog cache",
+  "endpoint": "/api/v1/platform/products/catalog/invalidate",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/platform/products/catalog/invalidate",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Appointments — My appointments",
+  "endpoint": "/api/v1/appointments/me",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/appointments/me",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Appointments — Reschedule quota",
+  "endpoint": "/api/v1/appointments/me/count-change/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/appointments/me/count-change/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Appointments — Request reschedule",
+  "endpoint": "/api/v1/appointments/me/request-change-date/{id}",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/appointments/me/request-change-date/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Appointments — Detail",
+  "endpoint": "/api/v1/appointments/detail/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/appointments/detail/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Appointments — Update",
+  "endpoint": "/api/v1/appointments/{id}",
+  "method": "PATCH",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/appointments/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — Count (public)",
+  "endpoint": "/api/v1/time-slots/count",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/time-slots/count",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — List (public)",
+  "endpoint": "/api/v1/time-slots",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/time-slots",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — Available dates (public)",
+  "endpoint": "/api/v1/time-slots/available-dates",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/scheduling/slots",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — By school (public)",
+  "endpoint": "/api/v1/time-slots/school/{code}/{date}/{isCheckLrw}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/time-slots/school/{code}/{date}/{isCheckLrw}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — Create batch (admin)",
+  "endpoint": "/api/v1/time-slots/batch",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/time-slots/batch",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — Update (admin)",
+  "endpoint": "/api/v1/time-slots/{id}",
+  "method": "PATCH",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/time-slots/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Time-Slots — Delete (admin)",
+  "endpoint": "/api/v1/time-slots/{id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/time-slots/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Scheduling — Slots",
+  "endpoint": "/api/v1/scheduling/slots",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/scheduling/slots",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Scheduling — Check register (public)",
+  "endpoint": "/api/v1/scheduling/days/check-register",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/scheduling/days/check-register",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Scheduling — Get days (admin)",
+  "endpoint": "/api/v1/scheduling/days",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/scheduling/days",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Scheduling — Create days (admin)",
+  "endpoint": "/api/v1/scheduling/days",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/scheduling/days",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Scheduling — Delete day (admin)",
+  "endpoint": "/api/v1/scheduling/days/{id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/scheduling/days/{id}",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam-Booking — LRW",
+  "endpoint": "/api/v1/exam-booking/lrw",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exam-booking/lrw",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam-Booking — Speaking",
+  "endpoint": "/api/v1/exam-booking/speaking",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exam-booking/speaking",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam-Booking — Package",
+  "endpoint": "/api/v1/exam-booking/package",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exam-booking/package",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Payments — VNPay IPN (public, server-to-server)",
+  "endpoint": "/api/v1/payments/vnpay/ipn",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/payments/vnpay/ipn",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Vouchers — Validate",
+  "endpoint": "/api/v1/vouchers/validate",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "Accept", "Origin"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/vouchers/validate",
+      "host": ["http://host.docker.internal:8085"],
+      "encoding": "no-op"
+    }
+  ]
+}

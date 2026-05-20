@@ -1,0 +1,17 @@
+groups:
+  - name: order-fulfillment
+    rules:
+      - alert: OrderPaymentHoldIPNConflictsHigh
+        expr: increase(order_payment_hold_ipn_conflicts_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: VNPay IPN rejected because payment holds expired
+      - alert: OrderOverduePendingScheduledOrders
+        expr: order_overdue_pending_scheduled_orders > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Pending scheduled orders still hold slots past payment deadline

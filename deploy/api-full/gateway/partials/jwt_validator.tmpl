@@ -1,0 +1,16 @@
+"auth/validator": {
+  "alg": "HS256",
+  "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+  "operation_debug": false,
+  "disable_jwk_security": true,
+  "propagate_claims": [
+    ["user_id", "x-user-id"],
+    ["email", "x-user-email"],
+    ["name", "x-user-name"],
+    ["role", "x-user-role"],
+    ["academy_id", "x-academy-id"],
+    ["academy_slug", "academy"],
+    ["academy_schema", "x-academy-schema"],
+    ["sub", "x-user-sub"]
+  ]
+}

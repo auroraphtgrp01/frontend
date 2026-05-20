@@ -1,0 +1,275 @@
+name: imto-api-full
+
+services:
+  krakend:
+    image: devopsfaith/krakend:2.7-watch
+    pull_policy: always
+    ports:
+      - "9080:9080"
+    environment:
+      FC_ENABLE: "1"
+      FC_SETTINGS: "settings"
+      FC_PARTIALS: "partials"
+    volumes:
+      - ./gateway:/etc/krakend:ro
+    command: ["run", "-dc", "krakend.tmpl"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      identity-service:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9080/__health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  postgres-primary:
+    image: postgres:16-alpine
+    pull_policy: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: imto-core
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: imto-core
+    volumes:
+      - pg_primary_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imto-core -d imto-core"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  postgres-replica:
+    image: postgres:16-alpine
+    pull_policy: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: imto-core
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: imto-core
+    volumes:
+      - pg_replica_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imto-core -d imto-core"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    pull_policy: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    pull_policy: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+
+  identity-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/identity-service:${IDENTITY_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8081:8081"
+      - "50051:50051"
+    env_file:
+      - ./env/identity-service.env
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  email-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/email-service:${EMAIL_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8082:8082"
+      - "50052:50052"
+    env_file:
+      - ./env/email-service.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  notification-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/notification-service:${NOTIFICATION_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8083:8083"
+      - "50053:50053"
+    env_file:
+      - ./env/notification-service.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  media-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/media-service:${MEDIA_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8084:8084"
+      - "50054:50054"
+    env_file:
+      - ./env/media-service.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  order-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/order-service:${ORDER_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8085:8085"
+      - "50055:50055"
+    env_file:
+      - ./env/order-service.env
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  exam-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/exam-service:${EXAM_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8086:8086"
+      - "50056:50056"
+    env_file:
+      - ./env/exam-service.env
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  practice-service:
+    image: ghcr.io/auroraphtgrp01/imto-be-core/practice-service:${PRACTICE_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "8088:8088"
+    env_file:
+      - ./env/practice-service.env
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8088/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: imto-api-network
+    driver: bridge
+
+volumes:
+  pg_primary_data:
+  pg_replica_data:
+  redis_data:
+  rabbitmq_data:

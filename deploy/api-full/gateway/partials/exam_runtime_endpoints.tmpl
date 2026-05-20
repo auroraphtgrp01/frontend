@@ -1,0 +1,171 @@
+{
+  "@comment": "Exam runtime list — JWT validated; propagate_claims headers MUST be listed in input_headers (KrakenD doc) so backend receives them",
+  "endpoint": "/api/v1/exams",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Email", "X-User-Name", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "X-User-Sub"],
+  "input_query_strings": ["type", "status", "q", "limit", "cursor"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exams",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam runtime detail",
+  "endpoint": "/api/v1/exams/{exam_id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Email", "X-User-Name", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "X-User-Sub"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exams/{exam_id}",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam runtime grading",
+  "endpoint": "/api/v1/exams/{exam_id}/grading",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Email", "X-User-Name", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "X-User-Sub"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "proxy": {
+      "return_error_code": true
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exams/{exam_id}/grading",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam runtime play presigned URL",
+  "endpoint": "/api/v1/exams/{exam_id}/play",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Email", "X-User-Name", "X-User-Role", "X-Academy-Id", "X-Academy-Schema", "X-User-Sub"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "proxy": {
+      "return_error_code": true
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/exams/{exam_id}/play",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+}

@@ -2,24 +2,31 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   useTrialSession,
-  useTrialAutosave,
   useSubmitTrial,
   useTrialResult,
   useUploadSpeakingAudio,
   useTrialExamContent,
   type ExamContent,
+  type FlatQuestion,
 } from '@/api/trialExam'
+import {
+  useTrialExamAutosave,
+  saveTrialSessionToStorage,
+  loadTrialSessionFromStorage,
+  clearTrialSessionFromStorage,
+} from '@/hooks/useTrialExamAutosave'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { QuestionRenderer } from '@/components/exam/QuestionRenderer'
 import { ReadingViewer } from '@/components/exam/ReadingViewer'
 import { WritingEditor } from '@/components/exam/WritingEditor'
 import { SpeakingRecorder } from '@/components/exam/SpeakingRecorder'
 import { ListeningPlayer } from '@/components/exam/ListeningPlayer'
+import { SubmitConfirmDialog } from '@/components/exam/SubmitConfirmDialog'
 import { Loader2, Clock, CheckCircle, AlertCircle, Send } from 'lucide-react'
 import { toast } from 'sonner'
+import { splitPassagesByPart } from '@/utils/parseExamHTML'
 
 // ============================================================
 // Helpers
@@ -71,16 +78,31 @@ interface LRExamPanelProps {
   disabled: boolean
 }
 
-function LRExamPanel({ content, answers, onChange, disabled }: LRExamPanelProps) {
-  const questions = content.questions ?? []
-  const passage = content.passage ?? ''
+interface ReadingPart {
+  partIndex: number
+  passage: string
+  questions: FlatQuestion[]
+}
 
-  const handleAnswer = useCallback(
-    (qIndex: number, value: string | string[] | null) => {
-      onChange({ ...answers, [`q-${qIndex}`]: value })
-    },
-    [answers, onChange]
-  )
+function LRExamPanel({ content, answers, onChange, disabled }: LRExamPanelProps) {
+  // Use parts structure from backend (already parsed)
+  const parts: ReadingPart[] = useMemo(() => {
+    // If content has parts structure, use it directly (backend already parsed HTML)
+    if (content.parts && content.parts.length > 0) {
+      return content.parts.map((part) => ({
+        partIndex: part.partIndex,
+        passage: part.passage || part.question || '',
+        questions: part.questions || [],
+      }))
+    }
+
+    // Fallback: use flat questions
+    return [{
+      partIndex: 1,
+      passage: content.passage || '',
+      questions: content.questions || [],
+    }]
+  }, [content])
 
   return (
     <div className="space-y-6">
@@ -91,43 +113,46 @@ function LRExamPanel({ content, answers, onChange, disabled }: LRExamPanelProps)
         </CardHeader>
       </Card>
 
-      {/* Reading passage */}
-      {content.type === 'reading' && passage && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Passage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ReadingViewer passage={passage} className="max-h-96 overflow-y-auto" />
-          </CardContent>
-        </Card>
-      )}
-
       {/* Listening audio */}
       {content.type === 'listening' && content.media_url && (
         <ListeningPlayer src={content.media_url} className="sticky top-0 z-10 bg-white shadow-md" />
       )}
 
-      {/* Questions */}
-      <div className="space-y-4">
-        {questions.map((q, i) => (
-          <QuestionRenderer
-            key={`q-${q.question_index}`}
-            question={{
-              id: String(q.question_index),
-              type: mapQuestionType(q.question_type),
-              text: q.question,
-              options: undefined,
-            }}
-            questionNumber={i + 1}
-            answer={(answers[`q-${q.question_index}`] as string | null) ?? null}
-            onChange={(val) => handleAnswer(q.question_index, val)}
-            disabled={disabled}
-          />
-        ))}
-      </div>
+      {/* Render each part */}
+      {parts.map((part) => (
+        <div key={`part-${part.partIndex}`} className="space-y-4">
+          {/* Reading passage for this part */}
+          {content.type === 'reading' && part.passage && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">
+                    Part {part.partIndex}
+                  </span>
+                  Reading Passage {part.partIndex}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReadingViewer passage={part.passage} className="max-h-[500px] overflow-y-auto" />
+              </CardContent>
+            </Card>
+          )}
 
-      {questions.length === 0 && (
+          {/* Questions section - render as embedded HTML */}
+          {part.questions.length > 0 && (
+            <div className="space-y-1">
+              <ExamQuestionsSection
+                questions={part.questions}
+                answers={answers}
+                onChange={onChange}
+              />
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* Fallback if no parts */}
+      {parts.length === 0 && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -136,6 +161,115 @@ function LRExamPanel({ content, answers, onChange, disabled }: LRExamPanelProps)
         </Alert>
       )}
     </div>
+  )
+}
+
+// ============================================================
+// Exam Questions Section - Renders HTML with embedded inputs
+// ============================================================
+
+interface ExamQuestionsSectionProps {
+  questions: FlatQuestion[]
+  answers: Record<string, string | string[] | null>
+  onChange: (answers: Record<string, string | string[] | null>) => void
+}
+
+function ExamQuestionsSection({ questions, answers, onChange }: ExamQuestionsSectionProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Sync initial answers to DOM inputs
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    Object.entries(answers).forEach(([key, value]) => {
+      if (value === null || value === undefined) return
+
+      // Handle text inputs
+      const textInput = containerRef.current?.querySelector(`[name="${key}"][type="text"]`) as HTMLInputElement | null
+      if (textInput && typeof value === 'string') {
+        textInput.value = value
+        return
+      }
+
+      // Handle radio inputs
+      const radioInputs = containerRef.current?.querySelectorAll(`[name="${key}"][type="radio"]`) as NodeListOf<HTMLInputElement>
+      if (radioInputs) {
+        radioInputs.forEach(radio => {
+          radio.checked = radio.value === value
+        })
+        return
+      }
+
+      // Handle checkbox inputs
+      const checkboxInputs = containerRef.current?.querySelectorAll(`[name="${key}"][type="checkbox"]`) as NodeListOf<HTMLInputElement>
+      if (checkboxInputs && Array.isArray(value)) {
+        checkboxInputs.forEach(cb => {
+          cb.checked = value.includes(cb.value)
+        })
+        return
+      }
+
+      // Handle select inputs
+      const selectInput = containerRef.current?.querySelector(`[name="${key}"]`) as HTMLSelectElement | null
+      if (selectInput && typeof value === 'string') {
+        selectInput.value = value
+      }
+    })
+  }, [answers])
+
+  // Listen to input changes
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleChange = (e: Event) => {
+      const target = e.target as HTMLInputElement | HTMLSelectElement
+      const name = target.name
+      if (!name) return
+
+      if (target.type === 'radio') {
+        const radio = target as HTMLInputElement
+        if (radio.checked) {
+          onChange({ ...answers, [name]: radio.value })
+        }
+      } else if (target.type === 'checkbox') {
+        const checkbox = target as HTMLInputElement
+        const currentValues = (answers[name] as string[]) || []
+        let newValues: string[]
+        if (checkbox.checked) {
+          newValues = [...currentValues, checkbox.value]
+        } else {
+          newValues = currentValues.filter(v => v !== checkbox.value)
+        }
+        onChange({ ...answers, [name]: newValues })
+      } else if (target.tagName === 'SELECT') {
+        const select = target as HTMLSelectElement
+        onChange({ ...answers, [name]: select.value })
+      } else if (target.type === 'text') {
+        const text = target as HTMLInputElement
+        onChange({ ...answers, [name]: text.value })
+      }
+    }
+
+    container.addEventListener('change', handleChange)
+    container.addEventListener('input', handleChange as EventListener)
+    return () => {
+      container.removeEventListener('change', handleChange)
+      container.removeEventListener('input', handleChange as EventListener)
+    }
+  }, [answers, onChange])
+
+  const htmlContent = questions
+    .map(q => q.html_question)
+    .filter(Boolean)
+    .join('\n')
+
+  return (
+    <div
+      ref={containerRef}
+      className="exam-questions-html space-y-3"
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
+    />
   )
 }
 
@@ -284,28 +418,40 @@ export default function TrialExamSessionPage() {
 
   const { data: session, isLoading: sessionLoading } = useTrialSession(safeSessionId)
   const { data: result } = useTrialResult(safeSessionId)
-  const autosaveMutation = useTrialAutosave()
   const submitMutation = useSubmitTrial()
   const uploadMutation = useUploadSpeakingAudio()
   const { data: content, isLoading: contentLoading, error: contentError } = useTrialExamContent(safeSessionId || undefined)
 
-  // ---- All state must be declared before any callbacks that reference them ----
+  // ---- State ----
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [essayText, setEssayText] = useState('')
   const [audioBlob, setAudioBlob] = useState<{ blob: Blob; duration: number } | null>(null)
-  const autosaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const answeredRef = useRef(false)
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false)
 
-  // Stable refs to avoid stale closure in timer/interval callbacks
-  const sessionRef = useRef(session)
-  sessionRef.current = session
-  const answersRef = useRef(answers)
-  answersRef.current = answers
-  const essayTextRef = useRef(essayText)
-  essayTextRef.current = essayText
+  // ---- Immutable refs for submit guard (NEVER causes re-renders) ----
+  const submittingRef = useRef(false)
+  const sessionIdRef = useRef(safeSessionId)
+  sessionIdRef.current = safeSessionId
   const audioBlobRef = useRef(audioBlob)
   audioBlobRef.current = audioBlob
+
+  // ---- Restore answers from localStorage on mount ----
+  useEffect(() => {
+    if (!safeSessionId) return
+    const saved = loadTrialSessionFromStorage(safeSessionId)
+    if (saved) {
+      setAnswers(saved.answers)
+      setEssayText(saved.essayText)
+      toast.info('Your previous progress has been restored.')
+    }
+  }, [safeSessionId])
+
+  // ---- Persist answers to localStorage on change (crash recovery) ----
+  useEffect(() => {
+    if (!safeSessionId || !session || session.status !== 'in_progress') return
+    saveTrialSessionToStorage(safeSessionId, { answers, essayText })
+  }, [answers, essayText, safeSessionId, session?.status])
 
   // Guard: redirect if sessionId is invalid (e.g. stale "undefined" string)
   useEffect(() => {
@@ -314,14 +460,21 @@ export default function TrialExamSessionPage() {
     }
   }, [sessionId, navigate])
 
-  // ---- Handlers ----
+  // ---- Autosave hook (debounce 2s + checkpoint 30s + client_seq) ----
+  // Must be called before callbacks that depend on it
+  const { isSaving, saveNow: autosaveSaveNow } = useTrialExamAutosave({
+    sessionId: safeSessionId,
+    answers,
+    essayText,
+    enabled: session?.status === 'in_progress' && !!(content && !contentLoading),
+  })
+
+  // ---- Callbacks ----
   const handleAnswerChange = useCallback((newAnswers: Record<string, unknown>) => {
-    answeredRef.current = true
     setAnswers(newAnswers)
   }, [])
 
   const handleEssayChange = useCallback((text: string) => {
-    answeredRef.current = true
     setEssayText(text)
     setAnswers((prev) => ({ ...prev, essay_text: text }))
   }, [])
@@ -331,60 +484,78 @@ export default function TrialExamSessionPage() {
     toast.success('Recording saved. Submit to upload.')
   }, [])
 
-  const handleSubmit = useCallback(async () => {
-    if (!safeSessionId || !sessionRef.current) return
+  const handleSubmitClick = useCallback(() => {
+    setShowSubmitDialog(true)
+  }, [])
+
+  // ---- CORE SUBMIT: chỉ gọi được 1 lần duy nhất ----
+  const doSubmit = useCallback(async () => {
+    // IMMUTABLE guard: không thể submit 2 lần dù có click bao nhiêu
+    if (submittingRef.current) return
+    submittingRef.current = true
+
+    const currentSessionId = sessionIdRef.current
+    const currentAudio = audioBlobRef.current
+
+    setShowSubmitDialog(false)
+
     try {
-      const currentAudio = audioBlobRef.current
-      if (sessionRef.current.skill === 'speaking' && currentAudio) {
+      // Upload speaking audio first
+      if (currentAudio) {
         const file = new File([currentAudio.blob], 'recording.webm', { type: 'audio/webm' })
-        await uploadMutation.mutateAsync({ sessionId: safeSessionId, file })
+        await uploadMutation.mutateAsync({ sessionId: currentSessionId, file })
       }
-      const finalAnswers = {
-        ...answersRef.current,
-        ...(sessionRef.current.skill === 'writing' ? { essay_text: essayTextRef.current } : {}),
-      }
-      await autosaveMutation.mutateAsync({ sessionId: safeSessionId, answers: finalAnswers })
-      await submitMutation.mutateAsync(safeSessionId)
+
+      // Force save final answers
+      await autosaveSaveNow()
+
+      // Submit
+      await submitMutation.mutateAsync(currentSessionId)
+
+      // Clear localStorage
+      clearTrialSessionFromStorage(currentSessionId)
+
+      // Navigate after success
       navigate('/app/trial')
     } catch {
-      // Error handled by mutations
+      // Unguard on error để user có thể thử lại
+      submittingRef.current = false
     }
-  }, [safeSessionId, uploadMutation, autosaveMutation, submitMutation, navigate])
+  }, [uploadMutation, autosaveSaveNow, submitMutation, navigate])
 
   // ---- Countdown timer ----
   useEffect(() => {
     if (!session || session.status !== 'in_progress') return
+
     const tick = () => {
       const left = Math.max(
         0,
         Math.floor((new Date(session.expires_at).getTime() - Date.now()) / 1000)
       )
       setTimeLeft(left)
-      if (left === 0) {
+
+      // Chỉ trigger submit KHI thực sự hết giờ VÀ chưa submit
+      if (left === 0 && !submittingRef.current) {
         toast.error('Time is up! Submitting your answers...')
-        handleSubmit()
+        doSubmit()
       }
     }
+
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [session?.expires_at, session?.status, handleSubmit])
+  }, [session?.expires_at, session?.status, doSubmit])
 
-  // ---- Auto-save every 30s ----
+  // ---- Expiry warnings ----
   useEffect(() => {
-    if (!session || session.status !== 'in_progress') return
-    if (autosaveTimerRef.current) clearInterval(autosaveTimerRef.current)
+    if (timeLeft === null || !session || session.status !== 'in_progress') return
 
-    autosaveTimerRef.current = setInterval(() => {
-      if (!answeredRef.current) return
-      answeredRef.current = false
-      autosaveMutation.mutate({ sessionId: safeSessionId, answers: answersRef.current })
-    }, 30_000)
-
-    return () => {
-      if (autosaveTimerRef.current) clearInterval(autosaveTimerRef.current)
+    if (timeLeft === 5 * 60) {
+      toast.warning('5 minutes remaining! Please finish your answers.')
+    } else if (timeLeft === 60) {
+      toast.error('1 minute remaining! Submit now!')
     }
-  }, [session?.status, safeSessionId, autosaveMutation])
+  }, [timeLeft, session?.status])
 
   // ---- Loading state ----
   if (sessionLoading) {
@@ -487,7 +658,6 @@ export default function TrialExamSessionPage() {
 
   // ---- In-progress session ----
   const isSubmitting = submitMutation.isPending || uploadMutation.isPending
-  const isSaving = autosaveMutation.isPending
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
@@ -563,12 +733,21 @@ export default function TrialExamSessionPage() {
         <Button variant="outline" onClick={() => navigate('/app/trial')}>
           Exit
         </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
+        <Button onClick={handleSubmitClick} disabled={isSubmitting || submittingRef.current} className="gap-2">
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           <Send className="h-4 w-4" />
           Submit
         </Button>
       </div>
+
+      {/* Submit confirmation dialog */}
+      <SubmitConfirmDialog
+        open={showSubmitDialog}
+        onOpenChange={setShowSubmitDialog}
+        unansweredCount={content?.questions ? content.questions.length - Object.keys(answers).filter(k => k.startsWith('q-') && answers[k] !== null && answers[k] !== '').length : 0}
+        onConfirm={doSubmit}
+        skillName={session?.skill}
+      />
     </div>
   )
 }

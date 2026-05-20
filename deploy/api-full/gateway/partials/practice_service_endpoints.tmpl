@@ -1,0 +1,189 @@
+{
+  "@comment": "Practice Service — List active learner practice entitlements",
+  "endpoint": "/api/v1/practice/entitlements",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/entitlements",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Practice Service — Start one enabled practice skill from an active entitlement",
+  "endpoint": "/api/v1/practice/entitlements/{order_id}/start/{skill}",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 30,
+      "client_max_rate": 30,
+      "capacity": 30,
+      "client_capacity": 30,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/entitlements/{order_id}/start/{skill}",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Practice Service — Resume practice attempt",
+  "endpoint": "/api/v1/practice/attempts/{practice_attempt_id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/attempts/{practice_attempt_id}",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Practice Service — Refresh presigned play URL for S3 re-auth",
+  "endpoint": "/api/v1/practice/attempts/{practice_attempt_id}/presign",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/attempts/{practice_attempt_id}/presign",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Practice Service — Autosave practice answers",
+  "endpoint": "/api/v1/practice/attempts/{practice_attempt_id}/skills/{practice_skill_attempt_id}/autosave",
+  "method": "PATCH",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 6,
+      "client_max_rate": 6,
+      "capacity": 6,
+      "client_capacity": 6,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/attempts/{practice_attempt_id}/skills/{practice_skill_attempt_id}/autosave",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Practice Service — Submit practice skill",
+  "endpoint": "/api/v1/practice/attempts/{practice_attempt_id}/skills/{practice_skill_attempt_id}/submit",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/attempts/{practice_attempt_id}/skills/{practice_skill_attempt_id}/submit",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Practice Service — Practice result",
+  "endpoint": "/api/v1/practice/attempts/{practice_attempt_id}/results",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "operation_debug": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/practice/attempts/{practice_attempt_id}/results",
+      "host": ["http://host.docker.internal:8090"],
+      "encoding": "no-op"
+    }
+  ]
+}

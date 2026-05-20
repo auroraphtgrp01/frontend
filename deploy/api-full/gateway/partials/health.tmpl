@@ -1,0 +1,92 @@
+{
+  "endpoint": "/",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin"],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/health",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/health",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin"],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/health",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/ready",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin"],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/ready",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/.well-known/jwks.json",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin"],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/.well-known/jwks.json",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+}

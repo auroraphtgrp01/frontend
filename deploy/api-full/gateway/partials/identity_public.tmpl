@@ -1,0 +1,490 @@
+{
+  "@comment": "Public auth endpoints — no JWT validation, preserve original request URL for academy resolution",
+  "endpoint": "/api/v1/auth/register",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/register",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "modifier/martian": {
+          "stash.Modifier": {
+            "scope": ["request"],
+            "headerName": "X-Original-Url"
+          }
+        }
+      }
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+},
+{
+  "endpoint": "/api/v1/auth/login",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/login",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        },
+        "modifier/martian": {
+          "stash.Modifier": {
+            "scope": ["request"],
+            "headerName": "X-Original-Url"
+          }
+        }
+      }
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+},
+{
+  "@comment": "Global auth endpoint — superadmin login on public schema",
+  "endpoint": "/api/v1/global/auth/login",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/auth/login",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+},
+{
+  "endpoint": "/api/v1/auth/refresh",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/refresh",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "modifier/martian": {
+          "stash.Modifier": {
+            "scope": ["request"],
+            "headerName": "X-Original-Url"
+          }
+        }
+      }
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+},
+{
+  "@comment": "Global control plane — provision a academy from system_admin",
+  "endpoint": "/api/v1/global/academys",
+  "method": "POST",
+  "timeout": "120s",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 120,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane — list academys (system_admin)",
+  "endpoint": "/api/v1/global/academys",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane — academy detail (system_admin)",
+  "endpoint": "/api/v1/global/academys/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane — update academy metadata (system_admin)",
+  "endpoint": "/api/v1/global/academys/{id}",
+  "method": "PUT",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane — deactivate academy (system_admin)",
+  "endpoint": "/api/v1/global/academys/{id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/auth/google",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/google",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "modifier/martian": {
+          "stash.Modifier": {
+            "scope": ["request"],
+            "headerName": "X-Original-Url"
+          }
+        }
+      }
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/auth/google/callback",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/google/callback",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "modifier/martian": {
+          "stash.Modifier": {
+            "scope": ["request"],
+            "headerName": "X-Original-Url"
+          }
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "2FA validate — public endpoint (uses 2fa_token, no JWT required)",
+  "endpoint": "/api/v1/auth/2fa/validate",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/2fa/validate",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        },
+        "modifier/martian": {
+          "stash.Modifier": {
+            "scope": ["request"],
+            "headerName": "X-Original-Url"
+          }
+        }
+      }
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+}

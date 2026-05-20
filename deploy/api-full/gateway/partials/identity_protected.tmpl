@@ -1,0 +1,513 @@
+{
+  "@comment": "Protected endpoints — JWT validated by gateway, claims propagated via headers",
+  "endpoint": "/api/v1/users/me",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/users/me",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global system_admin - GET /api/v1/global/users/me",
+  "endpoint": "/api/v1/global/users/me",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/users/me",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Global system_admin — GET /api/v1/global/users (list)",
+  "endpoint": "/api/v1/global/users",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/users",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Global system_admin — POST /api/v1/global/users",
+  "endpoint": "/api/v1/global/users",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/users",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Global system_admin — GET /api/v1/global/users/{id}",
+  "endpoint": "/api/v1/global/users/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/users/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Global system_admin — PUT /api/v1/global/users/{id}",
+  "endpoint": "/api/v1/global/users/{id}",
+  "method": "PUT",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/users/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Global system_admin — DELETE /api/v1/global/users/{id}",
+  "endpoint": "/api/v1/global/users/{id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/users/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/users/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/users/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/users/{id}",
+  "method": "PUT",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/users/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/users",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/users",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/users",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/users",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "endpoint": "/api/v1/users/{id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/users/{id}",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "2FA enable — protected (JWT required)",
+  "endpoint": "/api/v1/auth/2fa/enable",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/2fa/enable",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "2FA verify — protected (JWT required)",
+  "endpoint": "/api/v1/auth/2fa/verify",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/2fa/verify",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "2FA disable — protected (JWT required)",
+  "endpoint": "/api/v1/auth/2fa/disable",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/2fa/disable",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "2FA toggle — protected (JWT required + password confirmation)",
+  "endpoint": "/api/v1/auth/2fa/toggle",
+  "method": "PUT",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["*"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["email", "x-user-email"],
+        ["name", "x-user-name"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"],
+        ["academy_schema", "x-academy-schema"],
+        ["sub", "x-user-sub"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/auth/2fa/toggle",
+      "host": ["http://identity-service:8081"],
+      "encoding": "no-op"
+    }
+  ]
+}

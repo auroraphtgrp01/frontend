@@ -1,0 +1,190 @@
+{
+  "@comment": "Start attempt",
+  "endpoint": "/api/v1/attempts",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 30,
+      "client_max_rate": 30,
+      "capacity": 30,
+      "client_capacity": 30,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/attempts",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Attempt detail and nested actions",
+  "endpoint": "/api/v1/attempts/{attempt_id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/attempts/{attempt_id}",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Autosave attempt",
+  "endpoint": "/api/v1/attempts/{attempt_id}/skills/{skill_attempt_id}/autosave",
+  "method": "PATCH",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 6,
+      "client_max_rate": 6,
+      "capacity": 6,
+      "client_capacity": 6,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/attempts/{attempt_id}/skills/{skill_attempt_id}/autosave",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Submit attempt",
+  "endpoint": "/api/v1/attempts/{attempt_id}/skills/{skill_attempt_id}/submit",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Idempotency-Key", "Content-Type", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/attempts/{attempt_id}/skills/{skill_attempt_id}/submit",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Attempt results",
+  "endpoint": "/api/v1/attempts/{attempt_id}/results",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/attempts/{attempt_id}/results",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "My exam history",
+  "endpoint": "/api/v1/me/exam-history",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/me/exam-history",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Grading review list (teacher)",
+  "endpoint": "/api/v1/grading/review",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "disable_jwk_security": true,
+      "propagate_claims": [["user_id","x-user-id"],["role","x-user-role"],["academy_id","x-academy-id"],["academy_slug","academy"],["academy_schema","x-academy-schema"]]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 120,
+      "client_max_rate": 120,
+      "capacity": 120,
+      "client_capacity": 120,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/grading/review",
+      "host": ["http://host.docker.internal:8087"],
+      "encoding": "no-op"
+    }
+  ]
+}

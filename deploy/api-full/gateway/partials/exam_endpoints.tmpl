@@ -1,0 +1,48 @@
+{
+  "@comment": "Exam service health",
+  "endpoint": "/api/v1/exam/healthz",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "backend": [
+    {
+      "url_pattern": "/healthz",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+},
+{
+  "@comment": "Exam service readiness",
+  "endpoint": "/api/v1/exam/readyz",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "backend": [
+    {
+      "url_pattern": "/readyz",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ],
+  "extra_config": {
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "ip",
+      "every": "1m"
+    }
+  }
+}

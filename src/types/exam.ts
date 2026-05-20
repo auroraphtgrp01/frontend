@@ -184,8 +184,12 @@ export interface Question {
 export type QuestionType =
   | 'multiple_choice'
   | 'true_false'
+  | 'yes_no'
   | 'fill_blank'
   | 'matching'
+  | 'drag_drop'
+  | 'select'
+  | 'paragraph_matching'
   | 'diagram'
   | 'short_answer'
   | 'essay'

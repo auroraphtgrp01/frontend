@@ -1,0 +1,431 @@
+{
+  "@comment": "Global control plane - provision academy (system_admin)",
+  "endpoint": "/api/v1/global/academys",
+  "method": "POST",
+  "timeout": "120s",
+  "output_encoding": "no-op",
+  "input_headers": [
+    "Authorization",
+    "Academy",
+    "Content-Type",
+    "X-Request-ID",
+    "Idempotency-Key",
+    "Accept",
+    "Origin"
+  ],
+  "input_query_strings": [
+    "*"
+  ],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        [
+          "user_id",
+          "x-user-id"
+        ],
+        [
+          "email",
+          "x-user-email"
+        ],
+        [
+          "name",
+          "x-user-name"
+        ],
+        [
+          "role",
+          "x-user-role"
+        ],
+        [
+          "academy_id",
+          "x-academy-id"
+        ],
+        [
+          "academy_slug",
+          "academy"
+        ],
+        [
+          "academy_schema",
+          "x-academy-schema"
+        ],
+        [
+          "sub",
+          "x-user-sub"
+        ]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys",
+      "host": [
+        "http://identity-service:8081"
+      ],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 120,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane - list academys (system_admin)",
+  "endpoint": "/api/v1/global/academys",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": [
+    "Authorization",
+    "Academy",
+    "Content-Type",
+    "X-Request-ID",
+    "Idempotency-Key",
+    "Accept",
+    "Origin"
+  ],
+  "input_query_strings": [
+    "*"
+  ],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        [
+          "user_id",
+          "x-user-id"
+        ],
+        [
+          "email",
+          "x-user-email"
+        ],
+        [
+          "name",
+          "x-user-name"
+        ],
+        [
+          "role",
+          "x-user-role"
+        ],
+        [
+          "academy_id",
+          "x-academy-id"
+        ],
+        [
+          "academy_slug",
+          "academy"
+        ],
+        [
+          "academy_schema",
+          "x-academy-schema"
+        ],
+        [
+          "sub",
+          "x-user-sub"
+        ]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys",
+      "host": [
+        "http://identity-service:8081"
+      ],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane - academy detail (system_admin)",
+  "endpoint": "/api/v1/global/academys/{id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": [
+    "Authorization",
+    "Academy",
+    "Content-Type",
+    "X-Request-ID",
+    "Idempotency-Key",
+    "Accept",
+    "Origin"
+  ],
+  "input_query_strings": [
+    "*"
+  ],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        [
+          "user_id",
+          "x-user-id"
+        ],
+        [
+          "email",
+          "x-user-email"
+        ],
+        [
+          "name",
+          "x-user-name"
+        ],
+        [
+          "role",
+          "x-user-role"
+        ],
+        [
+          "academy_id",
+          "x-academy-id"
+        ],
+        [
+          "academy_slug",
+          "academy"
+        ],
+        [
+          "academy_schema",
+          "x-academy-schema"
+        ],
+        [
+          "sub",
+          "x-user-sub"
+        ]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys/{id}",
+      "host": [
+        "http://identity-service:8081"
+      ],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane - update academy metadata (system_admin)",
+  "endpoint": "/api/v1/global/academys/{id}",
+  "method": "PUT",
+  "output_encoding": "no-op",
+  "input_headers": [
+    "Authorization",
+    "Academy",
+    "Content-Type",
+    "X-Request-ID",
+    "Idempotency-Key",
+    "Accept",
+    "Origin"
+  ],
+  "input_query_strings": [
+    "*"
+  ],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        [
+          "user_id",
+          "x-user-id"
+        ],
+        [
+          "email",
+          "x-user-email"
+        ],
+        [
+          "name",
+          "x-user-name"
+        ],
+        [
+          "role",
+          "x-user-role"
+        ],
+        [
+          "academy_id",
+          "x-academy-id"
+        ],
+        [
+          "academy_slug",
+          "academy"
+        ],
+        [
+          "academy_schema",
+          "x-academy-schema"
+        ],
+        [
+          "sub",
+          "x-user-sub"
+        ]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys/{id}",
+      "host": [
+        "http://identity-service:8081"
+      ],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+},
+{
+  "@comment": "Global control plane - deactivate academy (system_admin)",
+  "endpoint": "/api/v1/global/academys/{id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": [
+    "Authorization",
+    "Academy",
+    "Content-Type",
+    "X-Request-ID",
+    "Idempotency-Key",
+    "Accept",
+    "Origin"
+  ],
+  "input_query_strings": [
+    "*"
+  ],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        [
+          "user_id",
+          "x-user-id"
+        ],
+        [
+          "email",
+          "x-user-email"
+        ],
+        [
+          "name",
+          "x-user-name"
+        ],
+        [
+          "role",
+          "x-user-role"
+        ],
+        [
+          "academy_id",
+          "x-academy-id"
+        ],
+        [
+          "academy_slug",
+          "academy"
+        ],
+        [
+          "academy_schema",
+          "x-academy-schema"
+        ],
+        [
+          "sub",
+          "x-user-sub"
+        ]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 50,
+      "client_max_rate": 50,
+      "capacity": 50,
+      "client_capacity": 50,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/global/academys/{id}",
+      "host": [
+        "http://identity-service:8081"
+      ],
+      "encoding": "no-op",
+      "extra_config": {
+        "qos/circuit-breaker": {
+          "interval": 60,
+          "timeout": 10,
+          "max_errors": 5,
+          "log_status_change": true
+        }
+      }
+    }
+  ]
+}

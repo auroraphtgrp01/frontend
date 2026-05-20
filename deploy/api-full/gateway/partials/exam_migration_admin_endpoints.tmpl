@@ -1,0 +1,448 @@
+{
+  "@comment": "Exam migration jobs list — no-op pipe: Lura json merge rejects some 2xx (e.g. 202) and can return 500 invalid status code",
+  "endpoint": "/api/v1/admin/exam-migrations/jobs",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["mode", "status", "academy_slug", "from", "to", "limit", "cursor"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 20,
+      "client_max_rate": 20,
+      "capacity": 20,
+      "client_capacity": 20,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/jobs",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration jobs create",
+  "endpoint": "/api/v1/admin/exam-migrations/jobs",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 10,
+      "client_max_rate": 10,
+      "capacity": 10,
+      "client_capacity": 10,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/jobs",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration update record",
+  "endpoint": "/api/v1/admin/exam-migrations/update",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 5,
+      "client_max_rate": 5,
+      "capacity": 5,
+      "client_capacity": 5,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/update",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration rollback pointer",
+  "endpoint": "/api/v1/admin/exam-migrations/rollback",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 5,
+      "client_max_rate": 5,
+      "capacity": 5,
+      "client_capacity": 5,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/rollback",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration verify",
+  "endpoint": "/api/v1/admin/exam-migrations/verify",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 10,
+      "client_max_rate": 10,
+      "capacity": 10,
+      "client_capacity": 10,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/verify",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration repair current",
+  "endpoint": "/api/v1/admin/exam-migrations/repair-current",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 10,
+      "client_max_rate": 10,
+      "capacity": 10,
+      "client_capacity": 10,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/repair-current",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration logs jobs",
+  "endpoint": "/api/v1/admin/exam-migrations/logs/jobs",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["mode", "status", "from", "to", "limit", "cursor"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 20,
+      "client_max_rate": 20,
+      "capacity": 20,
+      "client_capacity": 20,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/logs/jobs",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration audit",
+  "endpoint": "/api/v1/admin/exam-migrations/audit",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "input_query_strings": ["action", "limit", "cursor"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 20,
+      "client_max_rate": 20,
+      "capacity": 20,
+      "client_capacity": 20,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/audit",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration job by id (get / cancel)",
+  "endpoint": "/api/v1/admin/exam-migrations/jobs/{job_id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/jobs/{job_id}",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration job cancel",
+  "endpoint": "/api/v1/admin/exam-migrations/jobs/{job_id}",
+  "method": "DELETE",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/jobs/{job_id}",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration job results (and per-exam result)",
+  "endpoint": "/api/v1/admin/exam-migrations/jobs/{job_id}/results/{legacy_exam_id}",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/jobs/{job_id}/results/{legacy_exam_id}",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration job results list / mutation payload",
+  "endpoint": "/api/v1/admin/exam-migrations/jobs/{job_id}/results",
+  "method": "GET",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/jobs/{job_id}/results",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+},
+{
+  "@comment": "Exam migration repair (alias repair-current)",
+  "endpoint": "/api/v1/admin/exam-migrations/repair",
+  "method": "POST",
+  "output_encoding": "no-op",
+  "input_headers": ["Authorization", "Academy", "Content-Type", "X-Request-ID", "Idempotency-Key", "Accept", "Origin", "X-User-Id", "X-User-Role", "X-Academy-Id", "X-Academy-Schema"],
+  "extra_config": {
+    "auth/validator": {
+      "alg": "HS256",
+      "jwk_local_path": "/etc/krakend/settings/jwt_hs256_symmetric.json",
+      "operation_debug": false,
+      "disable_jwk_security": true,
+      "propagate_claims": [
+        ["user_id", "x-user-id"],
+        ["role", "x-user-role"],
+        ["academy_id", "x-academy-id"],
+        ["academy_slug", "academy"]
+      ]
+    },
+    "qos/ratelimit/router": {
+      "max_rate": 10,
+      "client_max_rate": 10,
+      "capacity": 10,
+      "client_capacity": 10,
+      "strategy": "header",
+      "key": "x-user-id",
+      "every": "1m"
+    }
+  },
+  "backend": [
+    {
+      "url_pattern": "/api/v1/admin/exam-migrations/repair",
+      "host": ["http://host.docker.internal:8086"],
+      "encoding": "no-op"
+    }
+  ]
+}

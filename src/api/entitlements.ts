@@ -6,7 +6,9 @@ import type {
   PackageEntitlementDetail,
   PackageEntitlementSummary,
   PracticeSkill,
+  PracticeComboMode,
   PracticeHistoryItem,
+  PracticeComboHistoryItem,
   StartEntitlementAttemptResponse,
   SkillAttemptInfo,
 } from '@/types/entitlement'
@@ -17,15 +19,15 @@ type ResumePaymentPayload = {
 
 const PRACTICE_START_KEY_PREFIX = 'imto.practice.start'
 
-function createPracticeStartIdempotencyKey(orderId: string, skill: PracticeSkill) {
+function createPracticeStartIdempotencyKey(orderId: string, skill: PracticeSkill | PracticeComboMode) {
   return `practice-start:${orderId}:${skill}:${clientUUID()}`
 }
 
-function practiceStartStorageKey(orderId: string, skill: PracticeSkill) {
+function practiceStartStorageKey(orderId: string, skill: PracticeSkill | PracticeComboMode) {
   return `${PRACTICE_START_KEY_PREFIX}:${orderId}:${skill}`
 }
 
-export function getPracticeStartIdempotencyKey(orderId: string, skill: PracticeSkill) {
+export function getPracticeStartIdempotencyKey(orderId: string, skill: PracticeSkill | PracticeComboMode) {
   const storageKey = practiceStartStorageKey(orderId, skill)
   const existing = sessionStorage.getItem(storageKey)
   if (existing) return existing
@@ -35,7 +37,7 @@ export function getPracticeStartIdempotencyKey(orderId: string, skill: PracticeS
   return next
 }
 
-export function clearPracticeStartIdempotencyKey(orderId: string, skill: PracticeSkill) {
+export function clearPracticeStartIdempotencyKey(orderId: string, skill: PracticeSkill | PracticeComboMode) {
   sessionStorage.removeItem(practiceStartStorageKey(orderId, skill))
 }
 
@@ -88,6 +90,36 @@ export const useStartPracticeSkill = () => {
       queryClient.invalidateQueries({ queryKey: ['practice-entitlements'] })
       queryClient.invalidateQueries({ queryKey: ['practice-entitlement'] })
       queryClient.invalidateQueries({ queryKey: ['practice-history'] })
+      queryClient.invalidateQueries({ queryKey: ['practice-combo-history'] })
+    },
+  })
+}
+
+export const useStartPracticeCombo = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      mode,
+      idempotencyKey,
+    }: {
+      orderId: string
+      mode: PracticeComboMode
+      idempotencyKey: string
+    }) => {
+      const response = await api.post(
+        `/api/v1/practice/entitlements/${orderId}/combo-attempts`,
+        { mode, idempotency_key: idempotencyKey },
+        { headers: { 'Idempotency-Key': idempotencyKey } },
+      )
+      return unwrapApiData<StartEntitlementAttemptResponse>(response.data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['practice-entitlements'] })
+      queryClient.invalidateQueries({ queryKey: ['practice-entitlement'] })
+      queryClient.invalidateQueries({ queryKey: ['practice-history'] })
+      queryClient.invalidateQueries({ queryKey: ['practice-combo-history'] })
     },
   })
 }
@@ -120,6 +152,28 @@ export const usePracticeHistoryFiltered = (filters: PracticeHistoryFilters = {})
         return payload.data
       }
       return unwrapApiData<PracticeHistoryItem[]>(response.data)
+    },
+    staleTime: 30_000,
+  })
+}
+
+export const usePracticeComboHistoryFiltered = (filters: Omit<PracticeHistoryFilters, 'skill'> = {}) => {
+  const normalizedStatus = filters.status && filters.status !== 'all' ? filters.status : undefined
+  const normalizedSearch = filters.search?.trim() ? filters.search.trim() : undefined
+
+  return useQuery({
+    queryKey: ['practice-combo-history', normalizedStatus ?? 'all', normalizedSearch ?? ''],
+    queryFn: async () => {
+      const query = new URLSearchParams()
+      if (normalizedStatus) query.set('status', normalizedStatus)
+      if (normalizedSearch) query.set('search', normalizedSearch)
+      const suffix = query.size > 0 ? `?${query.toString()}` : ''
+      const response = await api.get(`/api/v1/practice/combo-history${suffix}`)
+      const payload = response.data as { data?: PracticeComboHistoryItem[] }
+      if (Array.isArray(payload?.data)) {
+        return payload.data
+      }
+      return unwrapApiData<PracticeComboHistoryItem[]>(response.data)
     },
     staleTime: 30_000,
   })
@@ -160,6 +214,7 @@ export const useStartSkill = () => {
 export type {
   PackageEntitlementDetail,
   PackageEntitlementSummary,
+  PracticeComboMode,
   PracticeSkill,
   StartEntitlementAttemptResponse,
   SkillAttemptInfo,

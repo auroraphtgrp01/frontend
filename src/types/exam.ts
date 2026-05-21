@@ -65,7 +65,7 @@ export interface Exam {
   skill_count?: number
 }
 
-export type ExamMode = 'trial' | 'skill_practice' | 'full_test'
+export type ExamMode = 'trial' | 'skill_practice' | 'full_test' | 'combo_lrw' | 'combo_speaking' | 'combo_lrws'
 
 export interface ExamDetail extends Exam {
   skills: ExamSkill[]

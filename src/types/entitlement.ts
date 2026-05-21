@@ -9,6 +9,8 @@ export interface SkillAttemptInfo {
 
 export type PracticeSkill = 'listening' | 'reading' | 'writing' | 'speaking'
 
+export type PracticeComboMode = 'combo_lrw' | 'combo_speaking' | 'combo_lrws'
+
 /** GET /api/v1/practice/entitlements */
 export interface PackageEntitlementSummary {
   id: string
@@ -30,6 +32,7 @@ export interface PackageEntitlementDetail extends PackageEntitlementSummary {
 
 export interface StartEntitlementAttemptResponse {
   order_id: string
+  mode?: 'skill_practice' | PracticeComboMode
   skill: PracticeSkill
   practice_attempt_id: string
   practice_skill_attempt_id: string
@@ -40,6 +43,7 @@ export interface StartEntitlementAttemptResponse {
 export interface PracticeHistoryItem {
   practice_attempt_id: string
   practice_skill_attempt_id: string
+  mode?: 'skill_practice' | PracticeComboMode
   skill: PracticeSkill
   exam_uuid: string
   exam_title?: string
@@ -48,4 +52,14 @@ export interface PracticeHistoryItem {
   started_at: string
   submitted_at?: string
   can_view_result: boolean
+}
+
+export interface PracticeComboHistoryItem {
+  practice_attempt_id: string
+  mode: PracticeComboMode
+  status: 'in_progress' | 'submitted' | 'graded'
+  started_at: string
+  submitted_at?: string
+  can_view_result: boolean
+  skills: PracticeHistoryItem[]
 }

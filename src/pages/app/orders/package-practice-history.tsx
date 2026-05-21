@@ -13,9 +13,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { usePracticeHistoryFiltered } from '@/api/entitlements'
+import { usePracticeComboHistoryFiltered, usePracticeHistoryFiltered } from '@/api/entitlements'
 import { formatDate } from '@/lib/formatters'
-import type { PracticeHistoryItem, PracticeSkill } from '@/types/entitlement'
+import type { PracticeComboHistoryItem, PracticeHistoryItem, PracticeSkill } from '@/types/entitlement'
 
 const ALL_SKILLS = [
   { skill: 'listening' as PracticeSkill, label: 'Listening', icon: Headphones },
@@ -42,6 +42,12 @@ function formatHistoryExamLabel(item: PracticeHistoryItem) {
   return `Exam ${item.exam_uuid.slice(0, 8)}`
 }
 
+function comboLabel(item: PracticeComboHistoryItem) {
+  if (item.mode === 'combo_lrw') return 'Thi LRW'
+  if (item.mode === 'combo_speaking') return 'Thi Speaking'
+  return 'Thi LRWS'
+}
+
 export type PracticeHistorySectionProps = {
   /** Order id for Redo — required to start a new attempt on the same package */
   orderId?: string
@@ -63,6 +69,10 @@ export function PracticeHistorySection({
     status: historyStatus,
     search: searchText,
   })
+  const { data: comboHistory, isLoading: comboIsLoading } = usePracticeComboHistoryFiltered({
+    status: historyStatus,
+    search: searchText,
+  })
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set())
   const navigate = useNavigate()
 
@@ -75,7 +85,7 @@ export function PracticeHistorySection({
     })
   }
 
-  if (isLoading) {
+  if (isLoading || comboIsLoading) {
     return (
       <div className="rounded-lg border bg-card p-6 space-y-2">
         <div className="h-5 w-40 animate-pulse rounded bg-muted" />
@@ -84,8 +94,9 @@ export function PracticeHistorySection({
     )
   }
 
-  const historyItems = Array.isArray(history) ? history : []
-  const hasAnyHistory = historyItems.length > 0
+  const historyItems = Array.isArray(history) ? history.filter((item) => !item.mode || item.mode === 'skill_practice') : []
+  const comboHistoryItems = Array.isArray(comboHistory) ? comboHistory : []
+  const hasAnyHistory = historyItems.length > 0 || comboHistoryItems.length > 0
 
   return (
     <div className="rounded-lg border bg-card p-6 space-y-3">
@@ -125,7 +136,58 @@ export function PracticeHistorySection({
       {!hasAnyHistory ? (
         <p className="text-sm text-muted-foreground pl-6">No past attempts yet.</p>
       ) : (
-        <div className="space-y-1 pl-6">
+        <div className="space-y-3 pl-6">
+          {comboHistoryItems.length > 0 && (
+            <div className="rounded-md border">
+              <div className="flex items-center gap-2 border-b px-3 py-2 text-sm font-medium">
+                <History className="h-3.5 w-3.5" />
+                Combo Exams
+                <Badge variant="outline" className="text-xs font-normal">
+                  {comboHistoryItems.length}
+                </Badge>
+              </div>
+              <div className="divide-y">
+                {comboHistoryItems.map((item) => (
+                  <div
+                    key={item.practice_attempt_id}
+                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-xs">{comboLabel(item)}</Badge>
+                        {statusBadge(item.status)}
+                        <span className="text-muted-foreground">
+                          {formatDate(item.started_at, 'datetime')}
+                        </span>
+                      </div>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {item.skills.map((skill) => `${skill.skill}: ${formatHistoryExamLabel(skill)}`).join(' · ')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {item.status === 'in_progress' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/app/practice/session/${item.practice_attempt_id}`)}
+                        >
+                          Continue
+                        </Button>
+                      )}
+                      {item.can_view_result && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/app/practice/results/${item.practice_attempt_id}`}>
+                            View result
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="space-y-1">
           {ALL_SKILLS.map(({ skill, label, icon: Icon }) => {
             const skillItems = historyItems.filter((h) => h.skill === skill)
             if (skillItems.length === 0) return null
@@ -208,6 +270,7 @@ export function PracticeHistorySection({
               </div>
             )
           })}
+          </div>
         </div>
       )}
     </div>

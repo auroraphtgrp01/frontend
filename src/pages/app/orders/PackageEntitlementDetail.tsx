@@ -17,11 +17,12 @@ import {
   clearPracticeStartIdempotencyKey,
   getPracticeStartIdempotencyKey,
   usePackageEntitlementDetail,
+  useStartPracticeCombo,
   useStartPracticeSkill,
 } from '@/api/entitlements'
 import { clientUUID } from '@/lib/uuid'
 import { formatDate } from '@/lib/formatters'
-import type { PracticeSkill } from '@/types/entitlement'
+import type { PracticeComboMode, PracticeSkill } from '@/types/entitlement'
 import { PracticeHistorySection } from '@/pages/app/orders/package-practice-history'
 import {
   findSkillAttempt,
@@ -42,6 +43,7 @@ export default function PackageEntitlementDetailPage() {
   const navigate = useNavigate()
   const { data: entitlement, isLoading, isError, error, refetch } = usePackageEntitlementDetail(entitlementId)
   const startSkill = useStartPracticeSkill()
+  const startCombo = useStartPracticeCombo()
   const [pendingSkill, setPendingSkill] = useState<string | null>(null)
   const [redoPending, setRedoPending] = useState<string | null>(null)
   const [partPicker, setPartPicker] = useState<PartPickerState>({
@@ -79,6 +81,28 @@ export default function PackageEntitlementDetailPage() {
       }
     } catch (startError) {
       toast.error('Could not start attempt', {
+        description: startError instanceof Error ? startError.message : 'Please try again.',
+      })
+    } finally {
+      setPendingSkill(null)
+    }
+  }
+
+  const handleStartCombo = async (orderId: string, mode: PracticeComboMode) => {
+    const pendingKey = `${orderId}:${mode}`
+    setPendingSkill(pendingKey)
+    try {
+      const result = await startCombo.mutateAsync({
+        orderId,
+        mode,
+        idempotencyKey: getPracticeStartIdempotencyKey(orderId, mode),
+      })
+      const practiceAttemptId = result.practice_attempt_id
+      if (!practiceAttemptId) throw new Error('No practice_attempt_id in response')
+      clearPracticeStartIdempotencyKey(orderId, mode)
+      navigate(`/app/practice/session/${practiceAttemptId}`)
+    } catch (startError) {
+      toast.error('Could not start combo exam', {
         description: startError instanceof Error ? startError.message : 'Please try again.',
       })
     } finally {
@@ -181,6 +205,47 @@ export default function PackageEntitlementDetailPage() {
                 </p>
               </div>
               <Badge variant="secondary">Package</Badge>
+            </div>
+
+            <div className="rounded-md border p-4 space-y-3">
+              <div>
+                <h2 className="font-medium">Combo Exam</h2>
+                <p className="text-sm text-muted-foreground">
+                  Take ordered skills in one attempt. Results are released only after every required skill is completed.
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <Button
+                  variant="secondary"
+                  disabled={!entitlement.lrw_enabled || pendingSkill === `${entitlement.order_id}:combo_lrw` || startCombo.isPending}
+                  onClick={() => void handleStartCombo(entitlement.order_id, 'combo_lrw')}
+                >
+                  Thi LRW
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={
+                    !entitlement.speaking_enabled ||
+                    pendingSkill === `${entitlement.order_id}:combo_speaking` ||
+                    startCombo.isPending
+                  }
+                  onClick={() => void handleStartCombo(entitlement.order_id, 'combo_speaking')}
+                >
+                  Thi Speaking
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={
+                    !entitlement.lrw_enabled ||
+                    !entitlement.speaking_enabled ||
+                    pendingSkill === `${entitlement.order_id}:combo_lrws` ||
+                    startCombo.isPending
+                  }
+                  onClick={() => void handleStartCombo(entitlement.order_id, 'combo_lrws')}
+                >
+                  Thi LRWS
+                </Button>
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)]">
@@ -309,7 +374,7 @@ export default function PackageEntitlementDetailPage() {
             orderId={entitlement.order_id}
             onRedo={handleRedo}
             redoPending={redoPending}
-            startIsPending={startSkill.isPending}
+            startIsPending={startSkill.isPending || startCombo.isPending}
           />
         )}
       </div>
@@ -345,7 +410,10 @@ export default function PackageEntitlementDetailPage() {
                 type="button"
                 variant="ghost"
                 className="px-0"
-                onClick={() => setSelectedParts([...(PART_OPTIONS_BY_SKILL[partPicker.skill] ?? [])])}
+                onClick={() => {
+                  if (!partPicker.skill) return
+                  setSelectedParts([...(PART_OPTIONS_BY_SKILL[partPicker.skill] ?? [])])
+                }}
               >
                 Select all
               </Button>

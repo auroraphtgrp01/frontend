@@ -536,20 +536,41 @@ export const useSubmitSkill = () => {
         skillAttemptId,
         dirty,
       )
-      const response = await api.post(
-        `${attemptBasePath(runtime)}/${attemptId}/skills/${skillAttemptId}/submit`,
-        runtime === 'practice'
-          ? {
-              idempotency_key: idempotencyKey,
-              answers: practiceAnswersFromCheckpoint(answers),
-            }
-          : {
-              idempotency_key: idempotencyKey,
-              dirty,
-            },
-        { headers: { 'Idempotency-Key': idempotencyKey } },
-      )
-      return response.data
+      try {
+        const response = await api.post(
+          `${attemptBasePath(runtime)}/${attemptId}/skills/${skillAttemptId}/submit`,
+          runtime === 'practice'
+            ? {
+                idempotency_key: idempotencyKey,
+                answers: practiceAnswersFromCheckpoint(answers),
+              }
+            : {
+                idempotency_key: idempotencyKey,
+                dirty,
+              },
+          { headers: { 'Idempotency-Key': idempotencyKey } },
+        )
+        return response.data
+      } catch (error) {
+        const maybeAxiosError = error as {
+          response?: { status?: number; data?: { error?: { code?: string } } }
+        }
+        const errorCode = maybeAxiosError.response?.data?.error?.code
+        if (
+          runtime === 'practice' &&
+          maybeAxiosError.response?.status === 409 &&
+          errorCode === 'already_submitted'
+        ) {
+          return {
+            id: skillAttemptId,
+            attempt_id: attemptId,
+            practice_attempt_id: attemptId,
+            practice_skill_attempt_id: skillAttemptId,
+            already_submitted: true,
+          }
+        }
+        throw error
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attempt', 'submit'] })

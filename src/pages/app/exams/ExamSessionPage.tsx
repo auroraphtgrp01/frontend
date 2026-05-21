@@ -131,7 +131,10 @@ function SkillExamPage({
       answers: answersForSkill,
       runtime,
     })
-    onSkillSubmitted?.(skillType)
+    if (onSkillSubmitted) {
+      onSkillSubmitted(skillType)
+      return
+    }
     navigate(runtime === 'practice' ? `/app/practice/results/${attemptId}` : `/app/results/${attemptId}`)
   }
 
@@ -516,7 +519,8 @@ export default function ExamSessionPage() {
     )
   }
 
-  const isMultiSkill = (attempt.skills?.length ?? 0) > 1
+  const isComboPractice = runtime === 'practice' && String(attempt.mode ?? '').startsWith('combo_')
+  const isMultiSkill = isComboPractice || (attempt.skills?.length ?? 0) > 1
   const skillType: SkillType = (attempt.skill as SkillType) || attempt.skills?.[0]?.skill_type || 'reading'
   const activeSkillData = attempt.skills?.find((s) => s.skill_type === skillType)
   const audioUrl = skillType === 'listening' ? (activeSkillData?.audio_url || attempt.audio_url || undefined) : undefined

@@ -65,6 +65,22 @@ export interface SlotAvailability {
   shift_slot?: string
   available: boolean
   capacity_remaining?: number
+  blocked_reason?: string
+  conflicts?: SlotConflictWindow[]
+}
+
+export interface SlotConflictWindow {
+  start_time: string
+  end_time: string
+  source: string
+  skill?: string
+  reason?: string
+  academy_id?: string
+}
+
+export interface SlotAvailabilityEnvelope {
+  slots: SlotAvailability[]
+  blocked_windows?: SlotConflictWindow[]
 }
 
 export interface AvailableDate {

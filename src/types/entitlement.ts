@@ -9,15 +9,23 @@ export interface SkillAttemptInfo {
 
 export type PracticeSkill = 'listening' | 'reading' | 'writing' | 'speaking'
 
-export interface PackageEntitlement {
+/** GET /api/v1/practice/entitlements */
+export interface PackageEntitlementSummary {
+  id: string
   order_id: string
   product_id: string
+  product_name?: string
+  starts_at: string
   expires_at: string
   lrw_enabled: boolean
   lrw_remaining?: number | null
   speaking_enabled: boolean
   speaking_remaining?: number | null
-  skills?: SkillAttemptInfo[]
+}
+
+/** GET /api/v1/practice/entitlements/:id */
+export interface PackageEntitlementDetail extends PackageEntitlementSummary {
+  skills: SkillAttemptInfo[]
 }
 
 export interface StartEntitlementAttemptResponse {

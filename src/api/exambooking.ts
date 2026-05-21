@@ -7,6 +7,8 @@ import type {
   BookPackageRequest,
   BookingResponse,
   SlotAvailability,
+  SlotAvailabilityEnvelope,
+  SlotConflictWindow,
 } from '@/types/booking'
 import { toast } from 'sonner'
 
@@ -24,24 +26,31 @@ export const useSlotAvailability = (params: SlotAvailabilityParams | null) => {
     queryKey: ['slot-availability', params],
     queryFn: async () => {
       if (!params) return { dates: [], slots: [] }
-      const response = await api.get<{ success: boolean; data: Array<{
-        id?: string
-        time_slot?: string
-        shift_slot?: string
-        type?: string
-        is_available?: boolean
-      }> }>(
+      const response = await api.get<{ success: boolean; data: unknown }>(
         '/api/v1/time-slots',
         { params: { date: params.date, type: params.type } }
       )
-      const rows = unwrapApiData<Array<{
+      const raw = unwrapApiData<unknown>(response.data)
+      const rows = Array.isArray(raw)
+        ? raw
+        : ((raw as { slots?: Array<{
+            id?: string
+            time_slot?: string
+            shift_slot?: string
+            type?: string
+            is_available?: boolean
+          }> })?.slots ?? [])
+      const blockedWindows = Array.isArray(raw)
+        ? []
+        : (((raw as SlotAvailabilityEnvelope).blocked_windows as SlotConflictWindow[] | undefined) ?? [])
+      const typedRows = rows as Array<{
         id?: string
         time_slot?: string
         shift_slot?: string
         type?: string
         is_available?: boolean
-      }>>(response.data)
-      const slots: SlotAvailability[] = rows
+      }>
+      const slots: SlotAvailability[] = typedRows
         .filter((row) => !row.type || row.type === params.type)
         .map((row, idx) => {
         const range = (row.time_slot || '').split('-')
@@ -57,10 +66,12 @@ export const useSlotAvailability = (params: SlotAvailabilityParams | null) => {
           start_time: `${params.date}T${startTime}:00Z`,
           end_time: `${params.date}T${endTime}:00Z`,
           available: row.is_available ?? true,
+            blocked_reason: (row.is_available ?? true) ? undefined : 'user_schedule_conflict',
+            conflicts: (row.is_available ?? true) ? undefined : blockedWindows,
         }
       })
         .filter((slot) => slot.slot_id.length > 0)
-      return { dates: [], slots }
+      return { dates: [], slots, blocked_windows: blockedWindows }
     },
     enabled: !!params,
     staleTime: 30 * 1000,

@@ -405,6 +405,66 @@ export const useTimeSlots = (date?: string) => {
 // Academy admin orders (tenant-scoped; JWT role academy_admin)
 // ============================================================
 
+type ApiAdminOrderListItem = ApiOrderListItem & {
+  buyer?: { id?: string; name?: string; email?: string }
+  fulfillment_mode?: string | null
+  payment_deadline_at?: string | null
+}
+
+function mapApiAdminOrderListItem(o: ApiAdminOrderListItem): Order {
+  const base = mapApiOrderListItem(o)
+  return {
+    ...base,
+    user_id: o.buyer?.id ? String(o.buyer.id) : base.user_id,
+    user_name: o.buyer?.name,
+    user_email: o.buyer?.email,
+    fulfillment_mode: o.fulfillment_mode as Order['fulfillment_mode'],
+    payment_deadline_at: o.payment_deadline_at ?? undefined,
+  }
+}
+
+export const useRetailRegistrations = (params?: OrderListParams) => {
+  return useQuery({
+    queryKey: ['retail-registrations', params],
+    queryFn: async () => {
+      const response = await api.get('/api/v1/retail-registrations', { params })
+      const payload = unwrapApiData<ApiOrderListPayload>(response.data)
+      const rows = (payload.orders || []).map(mapApiOrderListItem)
+      return {
+        data: rows,
+        meta: {
+          total: payload.total,
+          page: payload.page,
+          per_page: payload.per_page,
+          total_pages: payload.total_pages,
+        },
+      }
+    },
+  })
+}
+
+export const useAdminRetailRegistrations = (params?: OrderListParams) => {
+  return useQuery({
+    queryKey: ['academy-admin-retail-registrations', params],
+    queryFn: async () => {
+      const response = await api.get('/api/v1/academy-admin/retail-registrations', { params })
+      const payload = unwrapApiData<ApiOrderListPayload & { orders?: ApiAdminOrderListItem[] }>(
+        response.data,
+      )
+      const rows = (payload.orders || []).map(mapApiAdminOrderListItem)
+      return {
+        data: rows,
+        meta: {
+          total: payload.total,
+          page: payload.page,
+          per_page: payload.per_page,
+          total_pages: payload.total_pages,
+        },
+      }
+    },
+  })
+}
+
 export const useAdminOrders = (params?: OrderListParams & { academy_id?: string }) => {
   return useQuery({
     queryKey: ['academy-admin-orders', params],

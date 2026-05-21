@@ -3,7 +3,8 @@ import { api } from '@/lib/axios'
 import { unwrapApiData } from '@/lib/api-envelope'
 import { clientUUID } from '@/lib/uuid'
 import type {
-  PackageEntitlement,
+  PackageEntitlementDetail,
+  PackageEntitlementSummary,
   PracticeSkill,
   PracticeHistoryItem,
   StartEntitlementAttemptResponse,
@@ -43,7 +44,18 @@ export const usePackageEntitlements = () => {
     queryKey: ['practice-entitlements'],
     queryFn: async () => {
       const response = await api.get('/api/v1/practice/entitlements')
-      return unwrapApiData<PackageEntitlement[]>(response.data)
+      return unwrapApiData<PackageEntitlementSummary[]>(response.data)
+    },
+  })
+}
+
+export const usePackageEntitlementDetail = (entitlementId: string | undefined) => {
+  return useQuery({
+    queryKey: ['practice-entitlement', entitlementId],
+    enabled: Boolean(entitlementId),
+    queryFn: async () => {
+      const response = await api.get(`/api/v1/practice/entitlements/${entitlementId}`)
+      return unwrapApiData<PackageEntitlementDetail>(response.data)
     },
   })
 }
@@ -74,17 +86,35 @@ export const useStartPracticeSkill = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['practice-entitlements'] })
+      queryClient.invalidateQueries({ queryKey: ['practice-entitlement'] })
       queryClient.invalidateQueries({ queryKey: ['practice-history'] })
     },
   })
 }
 
 export const usePracticeHistory = (skill?: PracticeSkill) => {
+  return usePracticeHistoryFiltered({ skill })
+}
+
+type PracticeHistoryFilters = {
+  skill?: PracticeSkill
+  status?: 'in_progress' | 'submitted' | 'graded' | 'all'
+  search?: string
+}
+
+export const usePracticeHistoryFiltered = (filters: PracticeHistoryFilters = {}) => {
+  const normalizedStatus = filters.status && filters.status !== 'all' ? filters.status : undefined
+  const normalizedSearch = filters.search?.trim() ? filters.search.trim() : undefined
+
   return useQuery({
-    queryKey: ['practice-history', skill ?? 'all'],
+    queryKey: ['practice-history', filters.skill ?? 'all', normalizedStatus ?? 'all', normalizedSearch ?? ''],
     queryFn: async () => {
-      const params = skill ? `?skill=${skill}` : ''
-      const response = await api.get(`/api/v1/practice/history${params}`)
+      const query = new URLSearchParams()
+      if (filters.skill) query.set('skill', filters.skill)
+      if (normalizedStatus) query.set('status', normalizedStatus)
+      if (normalizedSearch) query.set('search', normalizedSearch)
+      const suffix = query.size > 0 ? `?${query.toString()}` : ''
+      const response = await api.get(`/api/v1/practice/history${suffix}`)
       const payload = response.data as { data?: PracticeHistoryItem[] }
       if (Array.isArray(payload?.data)) {
         return payload.data
@@ -127,7 +157,14 @@ export const useStartSkill = () => {
   return useStartPracticeSkill()
 }
 
-export type { PracticeSkill, StartEntitlementAttemptResponse, SkillAttemptInfo, PracticeHistoryItem }
+export type {
+  PackageEntitlementDetail,
+  PackageEntitlementSummary,
+  PracticeSkill,
+  StartEntitlementAttemptResponse,
+  SkillAttemptInfo,
+  PracticeHistoryItem,
+}
 
 export const useResumeOrderPayment = () => {
   return useMutation({

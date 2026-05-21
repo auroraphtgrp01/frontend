@@ -41,9 +41,32 @@ export interface ParsedQuestion {
 }
 
 /**
+ * Helper to extract just the question text and HTML for a specific question number
+ */
+function extractQuestionContent(container: Element, qIndex: number): { text: string; html: string } | null {
+  // Look for a <p> or element that starts with this question number
+  const elements = container.querySelectorAll('p, td, span, div')
+  for (const el of elements) {
+    const text = el.textContent?.trim() || ''
+    if (text.includes(`${qIndex}.`) || text.includes(`${qIndex})`)) {
+      // Check if this element starts with the question number
+      const match = text.match(/^(\d+)[\.\)]\s+(.+)/s)
+      if (match && parseInt(match[1], 10) === qIndex) {
+        return {
+          text: text,
+          html: el.innerHTML,
+        }
+      }
+    }
+  }
+  return null
+}
+
+/**
  * Parse questions from HTML tables
  * Structure: Table with rows containing question text and radio buttons.
  * Radio name format: name="q-6" where 6 is the question number
+ * IMPORTANT: Only parse radios that are INSIDE a table element
  */
 function parseTableQuestions(html: string): ParsedQuestion[] {
   const questions: ParsedQuestion[] = []
@@ -51,8 +74,20 @@ function parseTableQuestions(html: string): ParsedQuestion[] {
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
 
-  // Find all radio inputs to extract options and question indices
-  const allRadios = doc.querySelectorAll('input[type="radio"]')
+  // Only find radio inputs that are INSIDE table elements
+  const tables = doc.querySelectorAll('table')
+  const allRadios: Element[] = []
+
+  tables.forEach((table) => {
+    table.querySelectorAll('input[type="radio"]').forEach((radio) => {
+      allRadios.push(radio)
+    })
+  })
+
+  // If no tables with radios found, return empty
+  if (allRadios.length === 0) {
+    return []
+  }
 
   // Collect unique option values
   const optionLabels: string[] = []
@@ -93,35 +128,69 @@ function parseTableQuestions(html: string): ParsedQuestion[] {
   const questionIndices = Array.from(radiosByQuestion.keys()).sort((a, b) => a - b)
 
   questionIndices.forEach((qIndex) => {
-    // Find the paragraph or cell containing this question
+    // Find the specific paragraph or cell element that contains ONLY this question
     const radios = radiosByQuestion.get(qIndex) || []
     let questionText = ''
+    let questionHTML = ''
 
-    // Look for the question text in the parent elements
+    // Look for the specific paragraph that contains this question number
     for (const radio of radios) {
-      let parent = radio.parentElement
-      let depth = 0
-      while (parent && depth < 5) {
-        const text = parent.textContent?.trim() || ''
-        // Check if this parent contains the question number
-        if (text.includes(`${qIndex}.`) || text.includes(`${qIndex})`) || text.includes(` ${qIndex} `)) {
-          // Clean the text - remove the question number and input elements
-          const clone = parent.cloneNode(true) as Element
-          clone.querySelectorAll('input').forEach((el) => el.remove())
-          questionText = clone.textContent?.trim() || ''
-
-          // Remove question number from start
-          questionText = questionText.replace(/^\d+[\.\)]\s*/, '').trim()
-          break
+      // Find the closest <p> tag with this question number
+      const pElement = radio.closest('p')
+      if (pElement) {
+        const pText = pElement.textContent?.trim() || ''
+        // Check if this <p> contains ONLY this question (or starts with it)
+        if (pText.includes(`${qIndex}.`) || pText.includes(`${qIndex})`)) {
+          // Check if this <p> only has this one question (not multiple questions)
+          const questionPattern = new RegExp(`^${qIndex}[\\.\\)]\\s`)
+          if (questionPattern.test(pText)) {
+            questionText = pText.replace(/^\d+[\.\)]\s*/, '').trim()
+            questionHTML = pElement.innerHTML.trim()
+            break
+          }
         }
-        parent = parent.parentElement
-        depth++
       }
-      if (questionText) break
+    }
+
+    // If no specific <p> found, try to find in the table cell
+    if (!questionText) {
+      for (const radio of radios) {
+        let parent = radio.parentElement
+        let depth = 0
+        while (parent && depth < 5) {
+          const text = parent.textContent?.trim() || ''
+          // Check if this parent contains ONLY this question number
+          if (text.includes(`${qIndex}.`) || text.includes(`${qIndex})`)) {
+            // Try to find the specific element with this question number
+            const questionP = parent.querySelector(`p, td, th, span`)
+            if (questionP) {
+              const pText = questionP.textContent?.trim() || ''
+              if (pText.includes(`${qIndex}.`) || pText.includes(`${qIndex})`)) {
+                questionText = pText.replace(/^\d+[\.\)]\s*/, '').trim()
+                questionHTML = `<p>${questionP.innerHTML}</p>`
+                break
+              }
+            }
+            
+            // If no specific element, use this parent but wrap just the question part
+            // Find the text node or element containing the question
+            const questionContent = extractQuestionContent(parent, qIndex)
+            if (questionContent) {
+              questionText = questionContent.text.replace(/^\d+[\.\)]\s*/, '').trim()
+              questionHTML = `<p>${questionContent.html}</p>`
+              break
+            }
+          }
+          parent = parent.parentElement
+          depth++
+        }
+        if (questionText) break
+      }
     }
 
     if (!questionText) {
       questionText = `Question ${qIndex}`
+      questionHTML = `<p>${questionText}</p>`
     }
 
     // Create options
@@ -150,6 +219,7 @@ function parseTableQuestions(html: string): ParsedQuestion[] {
     questions.push({
       question_index: qIndex,
       question: questionText,
+      html_question: questionHTML,
       question_type: questionType,
       part_index: 1,
       group_index: 1,
@@ -240,10 +310,12 @@ function parseInlineQuestions(html: string): ParsedQuestion[] {
 
     const questionElement = questionElements.get(qIndex)
     if (questionElement) {
+      // Store the ORIGINAL HTML (with inputs) for rendering
+      questionHTML = questionElement.innerHTML.trim()
+      // Extract text only by cloning and removing inputs
       const clone = questionElement.cloneNode(true) as Element
       clone.querySelectorAll('input').forEach((el) => el.remove())
       questionText = clone.textContent?.trim() || ''
-      questionHTML = clone.innerHTML.trim()
 
       // Remove question number prefix
       questionText = questionText.replace(/^(\d+)[\.\)]\s*/, '').trim()
@@ -311,6 +383,7 @@ function parseInlineQuestions(html: string): ParsedQuestion[] {
       questions.push({
         question_index: qIndex,
         question: questionText,
+        html_question: questionHTML,
         question_type: questionType,
         part_index: 1,
         group_index: 1,
@@ -364,17 +437,19 @@ function parseSelectQuestions(html: string): ParsedQuestion[] {
 
     // Find the question text - look for the preceding paragraph
     let questionText = ''
+    // Keep the ORIGINAL HTML with select element for rendering
     let questionHtml = ''
 
     // Get the parent container and look for question text
     const parent = select.closest('p') || select.parentElement
     if (parent) {
+      // Store the ORIGINAL HTML (with select) for rendering
+      questionHtml = parent.innerHTML.trim()
+      // Extract text only by cloning and removing select
       const clone = parent.cloneNode(true) as Element
-      // Remove select elements from clone
       clone.querySelectorAll('select').forEach((el) => el.remove())
       clone.querySelectorAll('input').forEach((el) => el.remove())
       questionText = clone.textContent?.trim() || ''
-      questionHtml = clone.innerHTML.trim()
     }
 
     if (!questionText) {
@@ -492,14 +567,15 @@ export function parseFillBlankQuestions(html: string): ParsedQuestion[] {
     const parent = input.closest('p, span, li')
 
     if (parent) {
+      // Store the ORIGINAL HTML (with input) for rendering
+      htmlQuestion = parent.innerHTML.trim()
+      // Extract text only by cloning and removing input
       const clone = parent.cloneNode(true) as Element
-      // Remove the input element
       const inputClone = clone.querySelector(`[name="${name}"]`)
       if (inputClone) {
         inputClone.remove()
       }
       questionText = clone.textContent?.trim() || ''
-      htmlQuestion = clone.innerHTML.trim()
 
       // Remove question number prefix
       questionText = questionText.replace(/^(\d+)[\.\)]\s*/, '').trim()
@@ -527,25 +603,26 @@ export function parseFillBlankQuestions(html: string): ParsedQuestion[] {
 /**
  * Combine all parsed questions from different parsers
  * Ensures no duplicates and proper ordering
+ * NOTE: parseQuestionsFromHTML already handles table + inline + select parsing,
+ * so we only add fill_blank questions here
  */
 export function parseAllQuestions(html: string): ParsedQuestion[] {
-  const allQuestions: ParsedQuestion[] = []
-
-  // Parse radio button questions (table + inline)
-  const radioQuestions = parseQuestionsFromHTML(html)
-  allQuestions.push(...radioQuestions)
-
-  // Parse select dropdown questions (drag-drop)
-  const selectQuestions = parseSelectQuestions(html)
-  allQuestions.push(...selectQuestions)
-
-  // Parse text input questions (fill in blanks)
+  // parseQuestionsFromHTML handles: table questions, select questions, and inline questions
+  // It returns early if any of those have results
+  const questions = parseQuestionsFromHTML(html)
+  
+  // Add fill_blank questions if not already parsed
   const textQuestions = parseFillBlankQuestions(html)
-  allQuestions.push(...textQuestions)
+  for (const tq of textQuestions) {
+    // Only add if not already in questions (by question_index)
+    if (!questions.some(q => q.question_index === tq.question_index)) {
+      questions.push(tq)
+    }
+  }
 
-  // Sort by question index and remove duplicates
-  allQuestions.sort((a, b) => a.question_index - b.question_index)
-  return dedupeQuestions(allQuestions)
+  // Sort by question index
+  questions.sort((a, b) => a.question_index - b.question_index)
+  return dedupeQuestions(questions)
 }
 
 /**

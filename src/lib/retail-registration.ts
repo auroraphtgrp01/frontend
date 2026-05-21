@@ -202,6 +202,26 @@ export function isRetailRegistrationScheduleComplete(
   return Boolean(lrwDate && lrwSlot && speakingDate && speakingSlot)
 }
 
+export function hasHalfOpenSlotOverlap(
+  left: SlotAvailability | null,
+  right: SlotAvailability | null,
+): boolean {
+  if (!left || !right) return false
+  const leftStart = new Date(left.start_time)
+  const leftEnd = new Date(left.end_time)
+  const rightStart = new Date(right.start_time)
+  const rightEnd = new Date(right.end_time)
+  if (
+    Number.isNaN(leftStart.getTime()) ||
+    Number.isNaN(leftEnd.getTime()) ||
+    Number.isNaN(rightStart.getTime()) ||
+    Number.isNaN(rightEnd.getTime())
+  ) {
+    return false
+  }
+  return leftStart < rightEnd && leftEnd > rightStart
+}
+
 export function isRetailRegistrationReady(
   catalog: RetailRegistrationCatalog | undefined,
   lrwDate: string | undefined,

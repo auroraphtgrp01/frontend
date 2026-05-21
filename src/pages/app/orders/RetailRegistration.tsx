@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PackageCheck } from 'lucide-react'
@@ -25,6 +25,7 @@ import {
 import {
   calculateRetailRegistrationTotal,
   formatRegistrationSlotLabel,
+  hasHalfOpenSlotOverlap,
   isRetailRegistrationScheduleComplete,
   resolveWritingAddon,
 } from '@/lib/retail-registration'
@@ -91,6 +92,16 @@ export default function RetailRegistration() {
   }, [catalog, lrwDate, lrwSlot, speakingDate, speakingSlot, scheduleComplete])
 
   const openDialog = (target: DialogTarget) => setDialogTarget(target)
+
+  const hasSelectedWindowConflict = useMemo(() => {
+    return hasHalfOpenSlotOverlap(lrwSlot, speakingSlot)
+  }, [lrwSlot, speakingSlot])
+
+  useEffect(() => {
+    if (!hasSelectedWindowConflict) return
+    setSpeakingSlot(null)
+    toast.error('Lịch Speaking bị trùng với L-R-W vừa chọn. Vui lòng chọn lại ca Speaking.')
+  }, [hasSelectedWindowConflict])
 
   const toggleWritingAddon = (mode: WritingFeedbackMode) => {
     setWritingAddons((current) => ({ ...current, [mode]: !current[mode] }))
@@ -173,6 +184,15 @@ export default function RetailRegistration() {
       })
       navigate(`/app/orders/${order.order_id}`)
     } catch (submitError) {
+      const backendCode =
+        (submitError as { response?: { data?: { error?: { code?: string } } } })?.response?.data?.error
+          ?.code
+      if (backendCode === 'USER_SCHEDULE_CONFLICT') {
+        toast.error('Lịch thi bị trùng với lịch hiện có của bạn', {
+          description: 'Vui lòng chọn ca thi khác để tiếp tục thanh toán.',
+        })
+        return
+      }
       toast.error('Không tạo được đăng ký lẻ', {
         description:
           submitError instanceof Error ? submitError.message : 'Vui lòng thử lại sau.',

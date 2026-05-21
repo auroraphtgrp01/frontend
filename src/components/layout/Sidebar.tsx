@@ -14,6 +14,7 @@ import {
   Package,
   ScrollText,
   PenTool,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -44,6 +45,7 @@ const navItemsByRole: Record<
   [ROLES.ACADEMY_ADMIN]: [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Users', href: '/admin/users', icon: User },
+    { label: 'DS ĐK Lẻ', href: '/admin/retail-registrations', icon: ClipboardList },
     { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Scheduling', href: '/admin/scheduling/timeslots', icon: Clock },
     { label: 'Grading', href: '/admin/grading', icon: ClipboardCheck },
@@ -59,6 +61,7 @@ const navItemsByRole: Record<
     { label: 'Thi thử IELTS', href: '/app/trial', icon: PenTool },
     { label: 'Gói luyện tập', href: '/app/products', icon: Package },
     { label: 'Đăng ký lẻ', href: '/app/register', icon: Calendar },
+    { label: 'DS ĐK Lẻ', href: '/app/retail-registrations', icon: ClipboardList },
     { label: 'My Orders', href: '/app/orders', icon: ShoppingCart },
     { label: 'Gói đã mua', href: '/app/packages', icon: Package },
     { label: 'Lịch thi đã đăng ký', href: '/app/appointments', icon: Calendar },

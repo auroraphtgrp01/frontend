@@ -26,7 +26,9 @@ import OrderListPage from '@/pages/app/orders/OrderList'
 import OrderDetailPage from '@/pages/app/orders/OrderDetail'
 import PaymentCallbackPage from '@/pages/app/orders/PaymentCallback'
 import PackageHubPage from '@/pages/app/orders/PackageHub'
+import PackageEntitlementDetailPage from '@/pages/app/orders/PackageEntitlementDetail'
 import RetailRegistrationPage from '@/pages/app/orders/RetailRegistration'
+import RetailRegistrationListPage from '@/pages/shared/RetailRegistrationListPage'
 import BookingWizardPage from '@/pages/app/bookings/BookingWizard'
 
 // ============ App Appointments Pages ============
@@ -222,12 +224,17 @@ function AppRoutes() {
         {/* Orders & Booking */}
         <Route path="products" element={<ProductListPage />} />
         <Route path="register" element={<RetailRegistrationPage />} />
+        <Route
+          path="retail-registrations"
+          element={<RetailRegistrationListPage scope="learner" />}
+        />
         <Route path="orders" element={<OrderListPage />} />
         <Route path="orders/new" element={<CreateOrderPage />} />
         <Route path="orders/new/:mode" element={<BookingWizardPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="orders/payment-callback" element={<PaymentCallbackPage />} />
         <Route path="packages" element={<PackageHubPage />} />
+        <Route path="packages/:entitlementId" element={<PackageEntitlementDetailPage />} />
 
         {/* Appointments */}
         <Route path="appointments" element={<MyAppointmentsPage />} />
@@ -328,6 +335,17 @@ function AppRoutes() {
       </Route>
 
       {/* Orders (academy_admin only — system_admin uses analytics, not order ops) */}
+      <Route
+        path="/admin/retail-registrations"
+        element={
+          <AcademyAdminRoute>
+            <AdminLayout />
+          </AcademyAdminRoute>
+        }
+      >
+        <Route index element={<RetailRegistrationListPage scope="academy_admin" />} />
+      </Route>
+
       <Route
         path="/admin/orders"
         element={

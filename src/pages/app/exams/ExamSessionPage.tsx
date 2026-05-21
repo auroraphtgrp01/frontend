@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
 import { useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useExamAttempt } from '@/contexts/ExamAttemptContext'
 import { useAttempt, useSubmitSkill, useExamPlayContent, type AttemptRuntime } from '@/api/attempts'
@@ -49,12 +49,22 @@ interface SkillExamPageProps {
   audioUrl?: string
   runtime: AttemptRuntime
   onSkillSubmitted?: (skill: SkillType) => void
+  selectedPartNumbers?: number[]
 }
 
 /** Standalone skill exam page — loads its own playContent given the examPlayUrl.
  *  This is the single point where useExamPlayContent lives so it can re-fire
  *  whenever the active skill changes (e.g. on skill switch). */
-function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillType, examPlayUrl, audioUrl, runtime, onSkillSubmitted }: SkillExamPageProps) {
+function SkillExamPage({
+  attemptId,
+  skillAttemptId: propSkillAttemptId,
+  skillType,
+  examPlayUrl,
+  audioUrl,
+  runtime,
+  onSkillSubmitted,
+  selectedPartNumbers,
+}: SkillExamPageProps) {
   const navigate = useNavigate()
   const { updateAnswer, setCurrentSkill, answers } = useExamAttempt()
   const { data: attempt } = useAttempt(attemptId, { runtime })
@@ -65,6 +75,15 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
   const { data: playContent } = useExamPlayContent(examPlayUrl, { attemptId, skillAttemptId, runtime, audioUrl })
 
   const partsHtml = playContent?.parts_html ?? []
+  const partsToRender = useMemo(() => {
+    if (!selectedPartNumbers || selectedPartNumbers.length === 0) return partsHtml
+    const selected = new Set(selectedPartNumbers)
+    const filtered = partsHtml.filter((part, index) => {
+      const partNumber = part.part_index > 0 ? part.part_index : index + 1
+      return selected.has(partNumber)
+    })
+    return filtered.length > 0 ? filtered : partsHtml
+  }, [partsHtml, selectedPartNumbers])
   const [currentPartIdx, setCurrentPartIdx] = useState(0)
   const [showSubmit, setShowSubmit] = useState(false)
 
@@ -90,15 +109,21 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
     [skillType, updateAnswer],
   )
 
-  const answeredCount = collectQuestionIdsFromParts(partsHtml)
+  useEffect(() => {
+    if (currentPartIdx >= partsToRender.length) {
+      setCurrentPartIdx(0)
+    }
+  }, [currentPartIdx, partsToRender.length])
+
+  const answeredCount = collectQuestionIdsFromParts(partsToRender)
     .filter((questionId) => (inputValues.current[questionId] ?? '').trim() !== '')
     .length
 
   const handleSubmit = async () => {
     if (!skillAttemptId) return
     const answersForSkill =
-      partsHtml.length > 0
-        ? collectCheckpointAnswers(partsHtml, inputValues.current)
+      partsToRender.length > 0
+        ? collectCheckpointAnswers(partsToRender, inputValues.current)
         : answers?.[skillType] ?? []
     await submitMutation.mutateAsync({
       attemptId,
@@ -111,8 +136,9 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
   }
 
   // Per-part question counts
-  const partInfo = partsHtml.map((p) => ({
+  const partInfo = partsToRender.map((p, index) => ({
     ...p,
+    displayPartNumber: p.part_index > 0 ? p.part_index : index + 1,
     qCount: collectQuestionIdsFromParts([p]).length,
   }))
   const totalQuestions = partInfo.reduce((acc, p) => acc + p.qCount, 0)
@@ -222,7 +248,7 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
     )
   }
 
-  if (partsHtml.length === 0 || partsHtml.every((part) => part.html.trim() === '')) {
+  if (partsToRender.length === 0 || partsToRender.every((part) => part.html.trim() === '')) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12 text-gray-500">
@@ -238,22 +264,22 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
         <div>
           <h2 className="text-xl font-bold text-gray-900 capitalize">{skillType} Exam</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {partsHtml.length > 1 && (
-              <span className="font-medium text-blue-600 mr-1">Part {currentPartIdx + 1}</span>
+            {partsToRender.length > 1 && (
+              <span className="font-medium text-blue-600 mr-1">Part {currentPart?.displayPartNumber ?? currentPartIdx + 1}</span>
             )}
             {playContent?.title ?? ''}
           </p>
         </div>
         <div className="text-sm text-gray-400">
-          {partsHtml.length > 1 && (
-            <span className="text-xs mr-3">{currentPartIdx + 1}/{partsHtml.length} parts</span>
+          {partsToRender.length > 1 && (
+            <span className="text-xs mr-3">{currentPartIdx + 1}/{partsToRender.length} parts</span>
           )}
           {totalQuestions} questions
         </div>
       </div>
 
       {/* Part tabs */}
-      {partsHtml.length > 1 && (
+      {partsToRender.length > 1 && (
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
           {partInfo.map((p, tabIdx) => (
             <button
@@ -265,7 +291,7 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Part {tabIdx + 1}
+              Part {p.displayPartNumber}
               <span className="ml-1.5 text-xs opacity-70">{p.qCount}q</span>
             </button>
           ))}
@@ -326,7 +352,7 @@ function SkillExamPage({ attemptId, skillAttemptId: propSkillAttemptId, skillTyp
         </button>
 
         <div className="flex gap-2">
-          {currentPartIdx < partsHtml.length - 1 ? (
+          {currentPartIdx < partsToRender.length - 1 ? (
             <button
               onClick={() => setCurrentPartIdx((p) => p + 1)}
               className="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
@@ -384,6 +410,17 @@ function MultiSkillExamSession({ attemptId, attempt, runtime, onAllSubmitted }: 
 
   const activeSkillData = skills.find((s) => s.skill_type === activeSkill)
   const audioUrl = activeSkill === 'listening' ? (activeSkillData?.audio_url || undefined) : undefined
+  const [searchParams] = useSearchParams()
+  const selectedPartNumbers = useMemo(() => {
+    const raw = searchParams.get('parts')
+    if (!raw) return undefined
+    const parsed = raw
+      .split(',')
+      .map((value) => Number.parseInt(value.trim(), 10))
+      .filter((value) => Number.isInteger(value) && value > 0)
+    if (parsed.length === 0) return undefined
+    return [...new Set(parsed)].sort((a, b) => a - b)
+  }, [searchParams])
 
   const handleSelectSkill = async (skill: SkillType) => {
     await saveNow()
@@ -421,6 +458,7 @@ function MultiSkillExamSession({ attemptId, attempt, runtime, onAllSubmitted }: 
           audioUrl={audioUrl}
           runtime={runtime}
           onSkillSubmitted={handleSkillSubmitted}
+          selectedPartNumbers={selectedPartNumbers}
         />
       </div>
     </>
@@ -443,6 +481,16 @@ export default function ExamSessionPage() {
     : `/app/results/${attemptId}`
 
   const skillAttemptIdFromUrl = searchParams.get('skill_attempt_id') || undefined
+  const selectedPartNumbers = useMemo(() => {
+    const raw = searchParams.get('parts')
+    if (!raw) return undefined
+    const parsed = raw
+      .split(',')
+      .map((value) => Number.parseInt(value.trim(), 10))
+      .filter((value) => Number.isInteger(value) && value > 0)
+    if (parsed.length === 0) return undefined
+    return [...new Set(parsed)].sort((a, b) => a - b)
+  }, [searchParams])
 
   if (isLoading) {
     return (
@@ -503,6 +551,7 @@ export default function ExamSessionPage() {
         audioUrl={audioUrl}
         runtime={runtime}
         onSkillSubmitted={() => navigate(resultPath)}
+        selectedPartNumbers={selectedPartNumbers}
       />
     </ExamSessionWithProvider>
   )

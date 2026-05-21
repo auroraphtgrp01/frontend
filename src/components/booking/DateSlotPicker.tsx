@@ -261,6 +261,11 @@ export function DateSlotPicker({
                         Teacher: {slot.teacher_name}
                       </div>
                     )}
+                    {slot.blocked_reason && (
+                      <div className="text-xs text-destructive mt-1">
+                        Conflicts with your existing schedule.
+                      </div>
+                    )}
                   </button>
                 )
               })}

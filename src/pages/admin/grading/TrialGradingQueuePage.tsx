@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useTrialGradingQueue, useTrialQueueItem, useTrialPick, useTrialApprove, type TrialSkill } from '@/api/trialExam'
+import {
+  useTrialGradingQueue,
+  useTrialQueueItem,
+  useTrialPick,
+  useTrialApprove,
+  useTrialAudioURL,
+  type TrialSkill,
+} from '@/api/trialExam'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,6 +39,38 @@ function StatusBadge({ status }: { status: string }) {
     case 'approved': return <Badge variant="default">{status}</Badge>
     default: return <Badge variant="outline">{status}</Badge>
   }
+}
+
+// Audio player for grading speaking submissions
+function SpeakingAudioPlayer({ audioKey, queueId }: { audioKey: string; queueId: string }) {
+  const { data: audioUrl, isLoading } = useTrialAudioURL(queueId, true)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading audio...
+      </div>
+    )
+  }
+
+  if (!audioUrl) {
+    return (
+      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-sm text-amber-700">
+        <p>Audio URL could not be generated. The storage may not be configured.</p>
+        <p className="text-xs mt-1 opacity-70">S3 key: {audioKey}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <audio src={audioUrl} controls className="w-full h-12" />
+      <p className="text-xs text-muted-foreground">
+        Presigned URL expires in 15 minutes. Refresh to get a new URL if needed.
+      </p>
+    </div>
+  )
 }
 
 // ============================================================
@@ -138,12 +177,10 @@ function TrialGradingReview() {
             <CardTitle className="text-base">Student Recording</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg border">
-              <p className="text-sm text-gray-600">Audio file: {item.audio_key}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                (Audio playback will be available when S3 is configured)
-              </p>
-            </div>
+            <SpeakingAudioPlayer
+              audioKey={item.audio_key}
+              queueId={item.id}
+            />
           </CardContent>
         </Card>
       )}

@@ -65,6 +65,29 @@
   color: #1f2937;
 }
 
+/* Hide duplicate submit/answer buttons that come from HTML content */
+.exam-questions-html button[type="submit"],
+.exam-questions-html input[type="submit"],
+.exam-questions-html .btn-answer,
+.exam-questions-html .btn-submit,
+.exam-questions-html .btn-part,
+.exam-questions-html button[class*="part"],
+.exam-questions-html [class*="answer-btn"],
+.exam-questions-html [class*="submit-btn"],
+.exam-questions-html .page-header,
+.exam-questions-html .question-header,
+.exam-questions-html .btn-next,
+.exam-questions-html .btn-prev {
+  display: none !important;
+}
+
+/* Ensure answer inputs are clearly visible */
+.exam-questions-html input[type="text"] {
+  @apply px-4 py-2 text-base border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100;
+  min-width: 200px;
+  background: white;
+}
+
 .exam-questions-html p {
   @apply my-3;
 }
